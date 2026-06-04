@@ -1,0 +1,1484 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>SIDEREXPRESS · Promotora</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root{
+  --red:#C0392B;--red-d:#922b21;--red-l:#fdf0ef;
+  --blue:#1a3a5c;--blue-m:#2471a3;--blue-l:#d6eaf8;
+  --green:#1a7a3c;--green-l:#d5f5e3;
+  --amber:#b7770d;--amber-l:#fef9e7;
+  --g50:#f9f9f9;--g100:#f2f2f2;--g200:#e4e4e4;--g400:#b0b0b0;--g600:#6e6e6e;--g800:#333;--g900:#111;
+  --r:12px;--rs:7px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--g100);color:var(--g900);font-size:14px;line-height:1.5;-webkit-tap-highlight-color:transparent;padding-bottom:5rem;}
+.hdr{background:var(--red);color:white;padding:.875rem 1rem;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:300;}
+.hdr-logo{width:34px;height:34px;background:white;border-radius:7px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.hdr-logo svg{width:20px;height:20px;}
+.hdr h1{font-size:14px;font-weight:700;}
+.hdr p{font-size:11px;opacity:.85;}
+.hdr-vc{margin-left:auto;background:rgba(255,255,255,.2);border-radius:20px;padding:3px 10px;font-size:11px;font-weight:600;white-space:nowrap;cursor:pointer;}
+.scr{display:none;}.scr.on{display:block;}
+.home{padding:1rem;}
+.vbox{background:white;border-radius:var(--r);padding:1rem 1.25rem;margin-bottom:.875rem;border:1px solid var(--g200);display:flex;align-items:center;gap:14px;}
+.vbox-n{font-size:32px;font-weight:700;color:var(--blue);min-width:40px;}
+.vbox-t strong{display:block;font-size:13px;color:var(--g800);}
+.vbox-t span{font-size:12px;color:var(--g600);}
+.btn-new{width:100%;padding:15px;background:var(--red);color:white;border:none;border-radius:var(--r);font-size:16px;font-weight:700;cursor:pointer;margin-bottom:.75rem;}
+.btn-res{width:100%;padding:12px;background:var(--blue);color:white;border:none;border-radius:var(--r);font-size:14px;font-weight:600;cursor:pointer;}
+.topbar{display:flex;align-items:center;gap:8px;padding:.625rem 1rem;background:white;border-bottom:1px solid var(--g200);position:sticky;top:62px;z-index:200;}
+.tb-back{font-size:13px;color:var(--blue-m);font-weight:600;cursor:pointer;}
+.tb-step{margin-left:auto;font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;background:var(--g100);color:var(--g600);}
+.progbar{height:3px;background:var(--g200);position:sticky;top:103px;z-index:199;}
+.progbar-fill{height:100%;background:var(--red);transition:width .3s ease;}
+.sw{padding:.875rem .875rem .5rem;}
+.card{background:white;border-radius:var(--r);padding:1rem 1.125rem;margin-bottom:.875rem;border:1px solid var(--g200);}
+.card-hdr{font-size:11px;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:.6px;margin-bottom:.875rem;padding-bottom:.5rem;border-bottom:1px solid var(--g100);display:flex;align-items:center;gap:6px;}
+.f{margin-bottom:.75rem;}
+.f:last-child{margin-bottom:0;}
+.f label{display:block;font-size:11px;font-weight:700;color:var(--g600);text-transform:uppercase;letter-spacing:.4px;margin-bottom:3px;}
+.f input,.f select,.f textarea{width:100%;padding:9px 11px;border:1.5px solid var(--g200);border-radius:var(--rs);font-size:14px;color:var(--g900);background:var(--g50);-webkit-appearance:none;}
+.f input:focus,.f select:focus,.f textarea:focus{outline:none;border-color:var(--blue-m);background:white;}
+.f textarea{min-height:68px;resize:vertical;}
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.fhint{font-size:11px;color:var(--g600);margin-top:3px;}
+.chk-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:5px;}
+.ci{display:flex;align-items:center;gap:7px;padding:8px 10px;border:1.5px solid var(--g200);border-radius:var(--rs);cursor:pointer;background:var(--g50);}
+.ci input{width:16px;height:16px;accent-color:var(--red);flex-shrink:0;}
+.ci span{font-size:12px;color:var(--g800);}
+.ci:has(input:checked){border-color:var(--red);background:var(--red-l);}
+.ci.warn:has(input:checked){border-color:var(--amber);background:var(--amber-l);}
+.rpills{display:flex;gap:6px;flex-wrap:wrap;margin-top:5px;}
+.rp{display:flex;align-items:center;gap:5px;padding:7px 11px;border:1.5px solid var(--g200);border-radius:20px;cursor:pointer;font-size:12px;background:var(--g50);}
+.rp:has(input:checked){border-color:var(--red);background:var(--red-l);color:var(--red-d);font-weight:600;}
+.rp input{accent-color:var(--red);}
+.gps-btn{width:100%;padding:10px;background:var(--blue-l);color:var(--blue);border:1.5px solid var(--blue-m);border-radius:var(--rs);font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;}
+.gps-st{font-size:11px;color:var(--g600);margin-top:4px;min-height:16px;}
+.photo-btn{width:100%;padding:11px;border:2px dashed var(--g400);border-radius:var(--rs);background:var(--g50);font-size:13px;color:var(--g600);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;}
+.pgrid{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;}
+.pthumb{position:relative;width:76px;height:76px;border-radius:var(--rs);overflow:hidden;border:1px solid var(--g200);}
+.pthumb img{width:100%;height:100%;object-fit:cover;}
+.pdel{position:absolute;top:2px;right:2px;width:20px;height:20px;background:rgba(0,0,0,.65);color:white;border:none;border-radius:50%;font-size:13px;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center;}
+.vh-item{border:1.5px solid var(--g200);border-radius:var(--rs);padding:.75rem;margin-bottom:.625rem;background:var(--g50);}
+.vh-item.on{border-color:var(--blue-m);background:var(--blue-l);}
+.vh-hdr{display:flex;align-items:center;gap:10px;}
+.vh-ico{font-size:24px;line-height:1;}
+.vh-name{font-size:13px;font-weight:700;color:var(--g800);flex:1;}
+.vh-tog{width:28px;height:28px;border-radius:50%;border:2px solid var(--g400);background:white;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;}
+.vh-tog.on{border-color:var(--blue-m);background:var(--blue-m);color:white;}
+.vh-qty{display:none;align-items:center;gap:10px;margin-top:.75rem;}
+.vh-item.on .vh-qty{display:flex;}
+.vlbl{font-size:10px;font-weight:700;color:var(--g600);text-transform:uppercase;letter-spacing:.3px;white-space:nowrap;}
+.qty{display:flex;align-items:center;border:1.5px solid var(--g200);border-radius:var(--rs);overflow:hidden;background:white;}
+.qty-btn{width:36px;height:36px;border:none;background:var(--g100);font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.qty-val{width:36px;text-align:center;font-size:15px;font-weight:700;}
+.add-vh{width:100%;padding:9px;border:1.5px dashed var(--blue-m);border-radius:var(--rs);background:white;color:var(--blue-m);font-size:13px;font-weight:600;cursor:pointer;margin-top:4px;}
+.nc-box{display:none;margin-top:.875rem;border-top:1px solid var(--g200);padding-top:.875rem;}
+.nc-box.on{display:block;}
+.ysn-row{display:flex;gap:10px;margin-top:.75rem;}
+.btn-si{flex:1;padding:14px;background:var(--green);color:white;border:none;border-radius:var(--r);font-size:15px;font-weight:700;cursor:pointer;}
+.btn-no{flex:1;padding:14px;background:white;color:var(--red);border:2px solid var(--red);border-radius:var(--r);font-size:15px;font-weight:700;cursor:pointer;}
+.obj-opt{border:1.5px solid var(--g200);border-radius:var(--rs);margin-bottom:.625rem;overflow:hidden;}
+.obj-opt.sel{border-color:var(--red);}
+.obj-top{display:flex;align-items:flex-start;gap:10px;padding:.75rem;cursor:pointer;}
+.obj-top input{width:16px;height:16px;accent-color:var(--red);flex-shrink:0;margin-top:2px;}
+.obj-top span{font-size:13px;font-weight:600;color:var(--g800);flex:1;}
+.obj-resp{padding:.625rem .75rem .75rem 1rem;background:var(--green-l);border-top:1px solid var(--g200);font-size:12px;color:#1a4a25;line-height:1.5;font-style:italic;}
+.obj-add-row{display:flex;gap:7px;margin-top:.5rem;}
+.obj-add-row input{flex:1;padding:8px 10px;border:1.5px dashed var(--blue-m);border-radius:var(--rs);font-size:13px;background:white;}
+.obj-add-row button{padding:8px 13px;background:var(--blue-m);color:white;border:none;border-radius:var(--rs);font-size:13px;cursor:pointer;}
+.interes-expand{display:none;margin-top:.875rem;border-top:1px solid var(--g200);padding-top:.875rem;}
+.interes-expand.on{display:block;}
+.chk-item{border:1.5px solid var(--g200);border-radius:var(--rs);margin-bottom:.75rem;overflow:hidden;}
+.chk-item-q{padding:.875rem 1rem;font-size:14px;font-weight:600;color:var(--g900);}
+.chk-consejo{background:var(--amber-l);padding:.625rem 1rem;font-size:11px;color:#6b4c00;line-height:1.5;border-top:1px dashed var(--amber);}
+.chk-consejo strong{display:block;margin-bottom:2px;font-size:10px;text-transform:uppercase;letter-spacing:.4px;}
+.chk-ans{display:flex;border-top:1px solid var(--g200);}
+.chk-btn{flex:1;padding:11px;border:none;background:var(--g50);font-size:13px;font-weight:600;cursor:pointer;color:var(--g600);}
+.chk-btn:first-child{border-right:1px solid var(--g200);}
+.chk-btn.yes.sel{background:var(--green-l);color:var(--green);}
+.chk-btn.no.sel{background:var(--red-l);color:var(--red-d);}
+.folleto-card{background:white;border-radius:var(--r);border:2px solid var(--amber);padding:1.25rem;margin-bottom:.875rem;text-align:center;}
+.folleto-ico{font-size:44px;margin-bottom:.75rem;}
+.folleto-title{font-size:16px;font-weight:700;color:var(--amber);margin-bottom:.5rem;}
+.folleto-txt{font-size:13px;color:var(--g600);line-height:1.6;margin-bottom:1rem;}
+.folleto-btn{width:100%;padding:13px;background:var(--amber);color:white;border:none;border-radius:var(--r);font-size:15px;font-weight:700;cursor:pointer;}
+.cont-item{background:var(--g50);border:1.5px solid var(--g200);border-radius:var(--rs);padding:.875rem;margin-bottom:.625rem;}
+.cont-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:.625rem;}
+.cont-num{font-size:11px;font-weight:700;color:var(--blue);background:var(--blue-l);padding:2px 8px;border-radius:20px;}
+.cont-del{border:none;background:none;color:var(--g400);font-size:20px;cursor:pointer;padding:0;line-height:1;}
+.enc-btn{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;margin-top:6px;cursor:pointer;border:1.5px solid var(--g200);background:var(--g50);color:var(--g600);}
+.enc-btn.on{background:var(--green-l);color:var(--green);border-color:var(--green);}
+.add-cont{width:100%;padding:9px;border:1.5px dashed var(--blue-m);border-radius:var(--rs);background:white;color:var(--blue-m);font-size:13px;font-weight:600;cursor:pointer;margin-top:4px;}
+.sla-t{width:100%;border-collapse:collapse;font-size:11px;}
+.sla-t th{background:var(--blue);color:white;padding:7px 8px;text-align:left;font-weight:600;}
+.sla-t td{padding:6px 7px;border-bottom:1px solid var(--g200);vertical-align:top;}
+.sla-t tr:last-child td{border-bottom:none;}
+.sla-t tr:nth-child(even) td{background:var(--g50);}
+#sigc{width:100%;height:155px;border:2px dashed var(--g400);border-radius:var(--rs);background:white;touch-action:none;display:block;cursor:crosshair;}
+#sigc.ok{border:2px solid var(--green);}
+.sig-st{font-size:11px;color:var(--g600);margin-top:4px;}
+.sig-st.ok{color:var(--green);font-weight:600;}
+.btn-clr{padding:7px 12px;border:1.5px solid var(--g400);border-radius:var(--rs);background:white;font-size:12px;cursor:pointer;color:var(--g800);margin-top:7px;}
+.ai{background:var(--blue-l);color:var(--blue);border-left:3px solid var(--blue-m);padding:9px 11px;border-radius:var(--rs);font-size:12px;margin-bottom:.75rem;line-height:1.5;}
+.as{background:var(--green-l);color:#145a32;border-left:3px solid var(--green);padding:9px 11px;border-radius:var(--rs);font-size:12px;margin-bottom:.75rem;}
+.aw{background:var(--amber-l);color:#6b4c00;border-left:3px solid var(--amber);padding:9px 11px;border-radius:var(--rs);font-size:12px;margin-bottom:.75rem;line-height:1.5;}
+.ar{background:var(--red-l);color:var(--red-d);border-left:3px solid var(--red);padding:9px 11px;border-radius:var(--rs);font-size:12px;margin-bottom:.75rem;}
+.cob-display{background:var(--blue-l);border-radius:var(--rs);padding:9px 11px;font-size:12px;color:var(--blue);margin-top:5px;line-height:1.6;}
+/* resultado */
+.result-card{background:white;border-radius:var(--r);border:2px solid var(--g200);padding:1.25rem;text-align:center;margin-bottom:.875rem;}
+.result-ico{font-size:44px;margin-bottom:.75rem;}
+.result-title{font-size:17px;font-weight:700;margin-bottom:.25rem;}
+.status-badge{display:inline-block;font-size:12px;font-weight:700;padding:4px 12px;border-radius:20px;margin-bottom:.75rem;}
+.sb-sc{background:#eee;color:#666;}
+.sb-vi{background:var(--amber-l);color:var(--amber);}
+.sb-pna{background:var(--red-l);color:var(--red-d);}
+.sb-reg{background:var(--green-l);color:var(--green);}
+.recap{background:var(--g50);border-radius:var(--rs);padding:.875rem;border:1px solid var(--g200);text-align:left;margin-bottom:.875rem;}
+.rrow{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--g200);font-size:12px;}
+.rrow:last-child{border-bottom:none;}
+.rl{color:var(--g600);}
+.rv{font-weight:600;text-align:right;max-width:60%;}
+/* WA grupo */
+.wa-grupo{background:white;border-radius:var(--r);border:2px solid #25D366;overflow:hidden;margin-bottom:.875rem;}
+.wa-grupo-hdr{background:#25D366;color:white;padding:.875rem 1rem;font-weight:700;font-size:14px;display:flex;align-items:center;gap:8px;}
+.wa-paso{padding:.875rem 1rem;border-bottom:1px solid var(--g200);}
+.wa-paso:last-child{border-bottom:none;}
+.wa-paso-num{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:var(--blue);color:white;font-size:11px;font-weight:700;margin-right:6px;flex-shrink:0;}
+.wa-paso-txt{font-size:13px;color:var(--g800);line-height:1.5;}
+.wa-copy-box{background:var(--g50);border-radius:var(--rs);padding:.75rem;margin:.625rem 0;font-size:13px;font-weight:700;color:var(--g900);border:1px solid var(--g200);word-break:break-all;}
+.btn-copy-sm{padding:7px 14px;background:var(--green);color:white;border:none;border-radius:var(--rs);font-size:12px;font-weight:600;cursor:pointer;}
+.wa-msg-pre{background:var(--g50);border-radius:var(--rs);padding:.75rem;font-size:12px;color:var(--g800);line-height:1.6;border:1px solid var(--g200);white-space:pre-wrap;margin:.625rem 0;}
+/* buttons */
+.btn-p{width:100%;padding:13px;background:var(--red);color:white;border:none;border-radius:var(--r);font-size:15px;font-weight:700;cursor:pointer;transition:all .15s;}
+.btn-p:active{background:var(--red-d);transform:scale(.98);}
+.btn-s{width:100%;padding:11px;background:white;color:var(--blue);border:1.5px solid var(--blue);border-radius:var(--r);font-size:13px;font-weight:600;cursor:pointer;}
+.btn-g{width:100%;padding:13px;background:var(--green);color:white;border:none;border-radius:var(--r);font-size:15px;font-weight:700;cursor:pointer;}
+.btn-blue{background:var(--blue);}
+.btnrow{display:flex;gap:8px;margin-top:.875rem;padding-bottom:.5rem;}
+.btnrow .btn-p,.btnrow .btn-s,.btnrow .btn-g{margin-top:0;}
+/* resumen */
+.res-wrap{padding:.875rem;}
+.res-hdr{background:var(--blue);color:white;border-radius:var(--r);padding:1rem;margin-bottom:.875rem;}
+.res-hdr h2{font-size:15px;font-weight:700;}
+.res-hdr p{font-size:12px;opacity:.8;margin-top:2px;}
+.vi{background:white;border-radius:var(--rs);padding:.75rem;margin-bottom:.5rem;border:1px solid var(--g200);display:flex;align-items:center;gap:10px;}
+.vi-n{width:26px;height:26px;border-radius:50%;background:var(--blue-l);color:var(--blue);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.vi-i h4{font-size:13px;font-weight:600;}
+.vi-i p{font-size:11px;color:var(--g600);}
+.vi-b{margin-left:auto;font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;flex-shrink:0;}
+.bsc{background:#eee;color:#666;}.bvi{background:var(--amber-l);color:var(--amber);}
+.bpna{background:var(--red-l);color:var(--red-d);}.breg{background:var(--green-l);color:var(--green);}
+.wa-box{background:var(--green-l);border:1.5px solid #4caf50;border-radius:var(--r);padding:.875rem;margin:.875rem 0;}
+.wa-box h4{font-size:13px;font-weight:700;color:var(--green);margin-bottom:.5rem;}
+.wa-txt{font-size:12px;color:#1a4a25;line-height:1.6;white-space:pre-wrap;word-break:break-word;}
+.btn-copy{width:100%;padding:10px;background:var(--green);color:white;border:none;border-radius:var(--rs);font-size:13px;font-weight:600;cursor:pointer;margin-top:.5rem;}
+.btn-pdf{width:100%;padding:12px;background:var(--blue);color:white;border:none;border-radius:var(--r);font-size:14px;font-weight:700;cursor:pointer;margin-top:.75rem;}
+/* Tipo visita */
+.tipo-card{background:white;border-radius:var(--r);border:2px solid var(--g200);padding:1.5rem 1.25rem;margin-bottom:1rem;display:flex;align-items:center;gap:14px;cursor:pointer;transition:border-color .15s,background .15s;}
+.tipo-card:active{transform:scale(.98);}
+.tipo-card.prosp{border-color:var(--red);}
+.tipo-card.seg{border-color:var(--blue-m);}
+.tipo-ico{font-size:36px;flex-shrink:0;}
+.tipo-t strong{display:block;font-size:15px;font-weight:700;margin-bottom:2px;}
+.tipo-t span{font-size:12px;color:var(--g600);}
+/* Estado pills para seguimiento */
+.seg-est-row{display:flex;gap:10px;margin-bottom:1rem;}
+.seg-est-btn{flex:1;padding:13px;border:2px solid var(--g200);border-radius:var(--r);font-size:14px;font-weight:700;cursor:pointer;background:white;color:var(--g600);transition:all .15s;}
+.seg-est-btn.activa.sel{border-color:var(--green);background:var(--green-l);color:var(--green);}
+.seg-est-btn.inactiva.sel{border-color:var(--amber);background:var(--amber-l);color:var(--amber);}
+/* Mercado fields */
+.seg-field-hint{font-size:11px;color:var(--g600);font-style:italic;margin-bottom:3px;}
+.sugerencia-item{border:1.5px solid var(--g200);border-radius:var(--rs);padding:.75rem;margin-bottom:.625rem;background:var(--g50);}
+.sugerencia-item strong{display:block;font-size:12px;font-weight:700;color:var(--blue);margin-bottom:.375rem;}
+/* Reactivacion */
+.react-btn{flex:1;padding:14px;border:none;border-radius:var(--r);font-size:14px;font-weight:700;cursor:pointer;}
+.react-si{background:var(--green);color:white;}
+.react-no{background:white;color:var(--red);border:2px solid var(--red);}
+/* Badge seguimiento en resumen */
+.bseg-act{background:var(--green-l);color:var(--green);}
+.bseg-in{background:var(--amber-l);color:var(--amber);}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div class="hdr-logo"><svg viewBox="0 0 24 24" fill="none"><rect x="2" y="6" width="20" height="12" rx="2" fill="#C0392B"/><path d="M6 10h12M6 14h8" stroke="white" stroke-width="1.8" stroke-linecap="round"/></svg></div>
+  <div><h1>SIDEREXPRESS</h1><p>Promotora · Trujillo 2026</p></div>
+  <div class="hdr-vc" id="hdr-vc" onclick="goRes()">0 visitas</div>
+</div>
+
+<!-- HOME -->
+<div class="scr on" id="scr-home">
+  <div class="home">
+    <div class="vbox">
+      <div class="vbox-n" id="vc-n">0</div>
+      <div class="vbox-t"><strong>Visitas registradas hoy</strong><span id="vc-d">Aún no has registrado ninguna visita</span></div>
+    </div>
+    <button class="btn-new" onclick="chooseTipo()">📋 Nueva visita</button>
+    <button class="btn-res" onclick="goRes()">📊 Resumen del día → enviar al supervisor</button>
+  </div>
+</div>
+
+<!-- TIPO DE VISITA -->
+<div class="scr" id="scr-tipo">
+  <div class="topbar"><span class="tb-back" onclick="goHome()">← Volver</span><span class="tb-step" style="margin-left:auto">Tipo de visita</span></div>
+  <div class="sw" style="padding-top:1.25rem">
+    <div class="ai" style="margin-bottom:1.25rem">¿Qué tipo de visita vas a registrar?</div>
+    <div class="tipo-card prosp" onclick="startForm()">
+      <div class="tipo-ico">🔍</div>
+      <div class="tipo-t"><strong>Visita de prospección</strong><span>Ferretería nueva, aún no afiliada a SIDEREXPRESS</span></div>
+    </div>
+    <div class="tipo-card seg" onclick="startSeguimiento()">
+      <div class="tipo-ico">📌</div>
+      <div class="tipo-t"><strong>Visita de seguimiento</strong><span>Ferretería ya registrada en la red SX (activa o inactiva)</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- FORM -->
+<div class="scr" id="scr-form">
+  <div class="topbar">
+    <span class="tb-back" onclick="confirmBack()">← Volver</span>
+    <span class="tb-step" id="tb-step">Paso 1</span>
+  </div>
+  <div class="progbar"><div class="progbar-fill" id="prog" style="width:20%"></div></div>
+  <div id="fc"></div>
+</div>
+
+<!-- SEGUIMIENTO FORM -->
+<div class="scr" id="scr-seg">
+  <div class="topbar">
+    <span class="tb-back" onclick="confirmBackSeg()">← Volver</span>
+    <span class="tb-step" id="seg-step-lbl">Paso 1 — Identificación</span>
+  </div>
+  <div class="progbar"><div class="progbar-fill" id="seg-prog" style="width:33%"></div></div>
+  <div id="seg-fc"></div>
+</div>
+
+<!-- RESUMEN -->
+<div class="scr" id="scr-res">
+  <div class="topbar"><span class="tb-back" onclick="goHome()">← Volver</span></div>
+  <div class="res-wrap">
+    <div class="res-hdr"><h2>📊 Resumen del día</h2><p id="rfecha"></p></div>
+    <div id="rlista"></div>
+    <div class="wa-box">
+      <h4>📲 Mensaje para el supervisor</h4>
+      <div class="wa-txt" id="wmsg"></div>
+      <button class="btn-copy" id="btn-sup-copy" onclick="cpTxt('wmsg','btn-sup-copy','📋 Copiar mensaje')">📋 Copiar mensaje</button>
+    </div>
+    <button class="btn-pdf" onclick="genReportePDF()">📄 Descargar reporte del día (PDF)</button>
+    <button class="btn-pdf" style="background:var(--green);margin-top:.5rem" onclick="genExcel()">📊 Descargar base de datos (Excel)</button>
+  </div>
+</div>
+
+<script>
+const visits=[];
+let rec={};
+let step=0;
+let photos={local:[],vehiculo:[]};
+let sigCtx,sigDrw=false,sigLX,sigLY,sigOK=false;
+let customObjs=[];
+let customVhs=[];
+let chkA={0:null,1:null,2:null,3:null};
+let interesVal=null;
+
+// ── SEGUIMIENTO STATE ──
+let segRec={};
+let segStep=0;
+let segPhotos={local:[]};
+
+// Estado: ACTIVA | INACTIVA | EN REVISION  — ciudad: Lima | Trujillo
+const TODAS_FERRETERIAS=[
+  // ── LIMA ──
+  {cod:'LIME001',nom:'A&L San Sebastian',ciudad:'Lima',estado:'EN REVISION'},
+  {cod:'LIME002',nom:'ADAM MAEL',ciudad:'Lima',estado:'INACTIVA'},
+  {cod:'LIME003',nom:'AMPER',ciudad:'Lima',estado:'INACTIVA'},
+  {cod:'LIME004',nom:'ANDY',ciudad:'Lima',estado:'INACTIVA'},
+  {cod:'LIME005-1',nom:'ATENCIO 1',ciudad:'Lima',estado:'ACTIVA'},
+  {cod:'LIME005-2',nom:'ATENCIO 2',ciudad:'Lima',estado:'ACTIVA'},
+  {cod:'LIME005-3',nom:'ATENCIO 3',ciudad:'Lima',estado:'ACTIVA'},
+  {cod:'LIME005-4',nom:'ATENCIO 4',ciudad:'Lima',estado:'ACTIVA'},
+  {cod:'LIME005-5',nom:'ATENCIO 5',ciudad:'Lima',estado:'ACTIVA'},
+  {cod:'LIME005-6',nom:'ATENCIO 6',ciudad:'Lima',estado:'ACTIVA'},
+  {cod:'LIME006',nom:'DANSA - CEMENSA',ciudad:'Lima',estado:'INACTIVA'},
+  {cod:'LIME007',nom:'DANSA - CEMFINOR',ciudad:'Lima',estado:'INACTIVA'},
+  {cod:'LIME008',nom:'DANSA - CEMFISA',ciudad:'Lima',estado:'INACTIVA'},
+  {cod:'LIME009',nom:'DANSA - CEMFISUR',ciudad:'Lima',estado:'INACTIVA'},
+  {cod:'LIME010',nom:'CODICEMAC',ciudad:'Lima',estado:'ACTIVA'},
+  {cod:'LIME011',nom:'CRISCEMI',ciudad:'Lima',estado:'INACTIVA'},
+  {cod:'LIME012',nom:'CROMAT',ciudad:'Lima',estado:'ACTIVA'},
+  {cod:'LIME013',nom:'DANSA - DANSA',ciudad:'Lima',estado:'INACTIVA'},
+  {cod:'LIME014',nom:'DIFEMAQ',ciudad:'Lima',estado:'INACTIVA'},
+  {cod:'LIME015',nom:'DINFECO',ciudad:'Lima',estado:'ACTIVA'},
+  {cod:'LIME016',nom:'DANSA - DISCASA',ciudad:'Lima',estado:'INACTIVA'},
+  {cod:'LIME017',nom:'FECSUR',ciudad:'Lima',estado:'ACTIVA'},
+  {cod:'LIME018',nom:'FERRETERIA ANCASH',ciudad:'Lima',estado:'INACTIVA'},
+  {cod:'LIME019',nom:'FERRETERIA DIEGO',ciudad:'Lima',estado:'INACTIVA'},
+  {cod:'LIME020',nom:'FERRETERIA OXAPAMPA',ciudad:'Lima',estado:'INACTIVA'},
+  {cod:'LIME021',nom:'FERRETERIA ALFA',ciudad:'Lima',estado:'ACTIVA'},
+  {cod:'LIME023',nom:'FERRETERIA CHIKI',ciudad:'Lima',estado:'INACTIVA'},
+  {cod:'LIME024-1',nom:'GILMAR 1',ciudad:'Lima',estado:'ACTIVA'},
+  {cod:'LIME024-2',nom:'GILMAR 2',ciudad:'Lima',estado:'ACTIVA'},
+  {cod:'LIME024-3',nom:'GILMAR 3',ciudad:'Lima',estado:'ACTIVA'},
+  {cod:'LIME024-4',nom:'GILMAR 4',ciudad:'Lima',estado:'ACTIVA'},
+  {cod:'LIME025',nom:'GP CONSORCIO',ciudad:'Lima',estado:'ACTIVA'},
+  {cod:'LIME026',nom:'HUGO ZAMORA',ciudad:'Lima',estado:'ACTIVA'},
+  {cod:'LIME027',nom:'INFAMASA',ciudad:'Lima',estado:'ACTIVA'},
+  {cod:'LIME028',nom:'INVERSIONES RIVEROS',ciudad:'Lima',estado:'ACTIVA'},
+  {cod:'LIME029',nom:'JT MADERAS',ciudad:'Lima',estado:'ACTIVA'},
+  {cod:'LIME030',nom:'LUKAS',ciudad:'Lima',estado:'INACTIVA'},
+  {cod:'LIME031',nom:'LUNA',ciudad:'Lima',estado:'INACTIVA'},
+  {cod:'LIME032',nom:'LOS PORTALES',ciudad:'Lima',estado:'ACTIVA'},
+  {cod:'LIME037-1',nom:'NORMACO - CANTA',ciudad:'Lima',estado:'INACTIVA'},
+  {cod:'LIME037-2',nom:'NORMACO - LOS OLIVOS',ciudad:'Lima',estado:'INACTIVA'},
+  {cod:'LIME037-3',nom:'NORMACO - COMAS',ciudad:'Lima',estado:'INACTIVA'},
+  {cod:'LIME038',nom:'DANSA - PANANORTE',ciudad:'Lima',estado:'INACTIVA'},
+  {cod:'LIME039',nom:'QUIRA',ciudad:'Lima',estado:'EN REVISION'},
+  {cod:'LIME041',nom:'SAN HILARION',ciudad:'Lima',estado:'INACTIVA'},
+  {cod:'LIME042',nom:'SAN JUAN',ciudad:'Lima',estado:'ACTIVA'},
+  {cod:'LIME043',nom:'SANTA CRUZ E.I.R.L.',ciudad:'Lima',estado:'ACTIVA'},
+  // ── TRUJILLO ──
+  {cod:'TRUJ001',nom:'LAS PALMERAS',ciudad:'Trujillo',estado:'ACTIVA'},
+  {cod:'TRUJ002',nom:'FERRONOR TRUJILLO',ciudad:'Trujillo',estado:'INACTIVA'},
+  {cod:'TRUJ003',nom:'FERRETERIA HIRINA',ciudad:'Trujillo',estado:'INACTIVA'},
+  {cod:'TRUJ004',nom:'INVERSIONES LANTANA',ciudad:'Trujillo',estado:'ACTIVA'},
+  {cod:'TRUJ005',nom:'TACORITA E.I.R.L.',ciudad:'Trujillo',estado:'ACTIVA'},
+  {cod:'TRUJ006',nom:'FERRETERIA LIDER',ciudad:'Trujillo',estado:'ACTIVA'},
+  {cod:'TRUJ007',nom:'FERRETERIA ALCA',ciudad:'Trujillo',estado:'ACTIVA'},
+  {cod:'TRUJ008',nom:'FERRETERIA MACONSA',ciudad:'Trujillo',estado:'ACTIVA'},
+  {cod:'TRUJ009',nom:'FERRETERIA EGIPTO',ciudad:'Trujillo',estado:'INACTIVA'},
+  {cod:'TRUJ010',nom:'2BOX',ciudad:'Trujillo',estado:'INACTIVA'},
+  {cod:'TRUJ011',nom:'GRUPO FERRETERO DEL NORTE',ciudad:'Trujillo',estado:'ACTIVA'},
+  {cod:'TRUJ012',nom:'LA ROCA EIRL',ciudad:'Trujillo',estado:'ACTIVA'},
+  {cod:'TRUJ013',nom:'LA SOLUCION',ciudad:'Trujillo',estado:'ACTIVA'},
+  {cod:'TRUJ014',nom:'MERI CONSTRUCCIONES',ciudad:'Trujillo',estado:'INACTIVA'},
+  {cod:'TRUJ015',nom:'OMEGA FERRETEROS',ciudad:'Trujillo',estado:'ACTIVA'},
+  {cod:'TRUJ016',nom:'FERRETERIA BETO',ciudad:'Trujillo',estado:'EN REVISION'},
+  {cod:'TRUJ017',nom:'FERRETERIA TORRES',ciudad:'Trujillo',estado:'ACTIVA'},
+  {cod:'TRUJ018',nom:'FERRETERIA MORENO Y HERMANOS',ciudad:'Trujillo',estado:'EN REVISION'},
+  {cod:'TRUJ019',nom:'SOCIO FERRETERIA Y HERRAMIENTAS',ciudad:'Trujillo',estado:'INACTIVA'},
+  {cod:'TRUJ020',nom:'SODECON',ciudad:'Trujillo',estado:'INACTIVA'},
+  {cod:'TRUJ021',nom:'JAVEKA',ciudad:'Trujillo',estado:'INACTIVA'},
+];
+// Helper: get filtered list
+function getFerrs(ciudad,estadoFiltro){
+  return TODAS_FERRETERIAS.filter(f=>f.ciudad===ciudad&&f.estado===estadoFiltro);
+}
+
+const OBJ_INACTIVAS=[
+  {txt:'No quiero que mis clientes sepan mis precios',resp:'Solo usamos su lista para cotizarle al cliente. Sus precios no son públicos ni compartidos con otras ferreterías.'},
+  {txt:'Las cotizaciones que me llegan son pocas',resp:'Estamos creciendo la base de clientes. Más ferreterías activas = más leads asignados por zona.'},
+  {txt:'Los clientes no terminan comprando',resp:'El cierre depende mucho de la rapidez de respuesta. Las ferreterías que confirman rápido convierten mejor.'},
+  {txt:'Me quita tiempo y no vale la pena',resp:'Al contrario: los clientes llegan listos para comprar. Solo hay que confirmar precio y despacho.'},
+  {txt:'Problemas con el pago / demoras',resp:'Podemos revisar el proceso. Hay casos puntuales que ya se resolvieron. ¿Cuál fue tu experiencia?'},
+  {txt:'Ya tengo mis propios clientes / no necesito más',resp:'SX no reemplaza tus clientes, suma volumen adicional sin inversión en publicidad.'},
+  {txt:'El canal WhatsApp no me parece cómodo',resp:'Estamos trabajando en mejoras al proceso. ¿Qué parte te resulta más difícil?'},
+  {txt:'Dejé de enviar precios y se desactivó solo',resp:'Podemos reactivarte hoy. Solo necesitas retomar el envío de precios y te volvemos a asignar cotizaciones.'},
+  {txt:'Otro motivo (especificar)',resp:''},
+];
+
+const SUGERENCIAS_SX=[
+  'Enviar precios más días / consistentemente',
+  'Mejorar tiempo de respuesta al cotizador',
+  'Ampliar cobertura de distritos',
+  'Tener stock de otros materiales (cemento, ladrillo)',
+  'Mejorar precio en categoría fierro',
+  'Facilitar crédito o financiamiento al cliente',
+  'Mejorar comunicación con el operador SX',
+];
+
+function chooseTipo(){show('scr-tipo');}
+function startSeguimiento(){
+  segRec={};segStep=0;segPhotos={local:[]};
+  renderSeg();show('scr-seg');
+}
+function confirmBackSeg(){if(segStep===0||confirm('¿Salir? Los datos no se guardarán.')){show('scr-tipo');}}
+
+function renderSeg(){
+  const steps=['Identificación','Información','Resultado'];
+  const prog=[33,66,100];
+  document.getElementById('seg-step-lbl').textContent='Paso '+(segStep+1)+' — '+steps[segStep];
+  document.getElementById('seg-prog').style.width=prog[segStep]+'%';
+  const fns=[segS0,segS1,segS2];
+  document.getElementById('seg-fc').innerHTML=(fns[segStep]||segS0)();
+  afterSeg();window.scrollTo(0,0);
+}
+function setSegStep(n){segStep=n;renderSeg();}
+
+// ── SEG STEP 0: IDENTIFICACIÓN ──
+function segS0(){
+  const r=segRec;
+  const ciudadSel=r.seg_ciudad||'';
+  const estadoSel=r.seg_estado||'activa';
+  const lista=ciudadSel?getFerrs(ciudadSel,estadoSel==='activa'?'ACTIVA':estadoSel==='inactiva'?'INACTIVA':'EN REVISION'):[];
+  const enRevLima=getFerrs('Lima','EN REVISION');
+  const enRevTruj=getFerrs('Trujillo','EN REVISION');
+  const enRevHint=estadoSel==='activa'&&ciudadSel?
+    (ciudadSel==='Lima'?enRevLima:enRevTruj).length>0?
+      `<div class="fhint">⚠️ También hay ${(ciudadSel==='Lima'?enRevLima:enRevTruj).length} en revisión (no aparecen aquí hasta confirmar estado)</div>`:''
+    :'';
+  const optsHtml=lista.map(f=>`<option value="${f.cod}" ${r.seg_cod===f.cod?'selected':''}>${f.nom}</option>`).join('');
+  return `<div class="sw">
+  <div class="card">
+    <div class="card-hdr">🏙️ Ciudad</div>
+    <div class="seg-est-row">
+      <button class="seg-est-btn activa ${ciudadSel==='Lima'?'sel':''}" style="border-color:var(--blue-m);color:${ciudadSel==='Lima'?'var(--blue)':'var(--g600)'}; background:${ciudadSel==='Lima'?'var(--blue-l)':'white'}" onclick="setSegCiudad('Lima')">🏙️ Lima</button>
+      <button class="seg-est-btn activa ${ciudadSel==='Trujillo'?'sel':''}" style="border-color:var(--blue-m);color:${ciudadSel==='Trujillo'?'var(--blue)':'var(--g600)'}; background:${ciudadSel==='Trujillo'?'var(--blue-l)':'white'}" onclick="setSegCiudad('Trujillo')">🏙️ Trujillo</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-hdr">📌 Estado de la ferretería</div>
+    <div class="seg-est-row">
+      <button class="seg-est-btn activa ${estadoSel==='activa'?'sel':''}" onclick="setSegEstado('activa')">✅ Activa</button>
+      <button class="seg-est-btn inactiva ${estadoSel==='inactiva'?'sel':''}" onclick="setSegEstado('inactiva')">⏸ Inactiva</button>
+    </div>
+    <div class="f">
+      <label>Ferretería visitada</label>
+      <select id="seg-ferr" ${!ciudadSel?'disabled':''}>
+        <option value="">— ${!ciudadSel?'Selecciona ciudad primero':'Seleccionar ferretería'} —</option>
+        ${optsHtml}
+      </select>
+      <div class="fhint">${ciudadSel?lista.length+' ferreterías '+estadoSel+'s en '+ciudadSel:'Elige ciudad para ver la lista'}</div>
+      ${enRevHint}
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-hdr">📡 Ubicación y evidencia</div>
+    <div class="f"><label>GPS del local</label>
+      <button type="button" class="gps-btn" onclick="doGPSSeg()" style="height:40px">📡 Capturar ubicación</button>
+      <div class="gps-st" id="seg-gst">${r.lat?`✅ ${(+r.lat).toFixed(4)}, ${(+r.lon).toFixed(4)} (±${r.gpsAcc||'?'}m)`:''}</div>
+    </div>
+    <div class="f"><label>Foto de la visita</label>
+      <label class="photo-btn">📷 Tomar foto<input type="file" accept="image/*" capture="environment" multiple style="display:none" onchange="addPhSeg(this)"></label>
+      <div class="pgrid" id="seg-pgrid"></div>
+    </div>
+  </div>
+  <div class="btnrow">
+    <button class="btn-s" onclick="show('scr-tipo')">← Volver</button>
+    <button class="btn-p" onclick="if(saveSeg0())setSegStep(1)">Siguiente →</button>
+  </div>
+</div>`;
+}
+
+// ── SEG STEP 1: INFO (activa / inactiva) ──
+function segS1(){
+  const r=segRec;
+  if(r.seg_estado==='activa') return segS1Activa(r);
+  return segS1Inactiva(r);
+}
+
+function segS1Activa(r){
+  const nps=r.nps||null;
+  const npsColor=nps===null?'var(--g400)':nps>=9?'var(--green)':nps>=7?'var(--amber)':'var(--red)';
+  const npsLabel=nps===null?'Sin calificar':nps>=9?'Promotor 😊':nps>=7?'Neutro 😐':'Detractor 😟';
+  return `<div class="sw">
+  <div class="card">
+    <div class="card-hdr">⭐ Satisfacción con SIDEREXPRESS</div>
+    <div class="seg-field-hint" style="margin-bottom:.75rem">¿Qué tan probable es que recomiende SX a otro ferretero? (0 = nada, 10 = totalmente)</div>
+    <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:.625rem" id="nps-btns">
+      ${[0,1,2,3,4,5,6,7,8,9,10].map(n=>{
+        const sel=r.nps===n;
+        const bg=n>=9?'var(--green)':n>=7?'var(--amber)':'var(--red)';
+        return `<button onclick="setNPS(${n})" style="flex:1;min-width:36px;padding:9px 4px;border:2px solid ${sel?bg:'var(--g200)'};border-radius:var(--rs);font-size:13px;font-weight:700;cursor:pointer;background:${sel?bg:'white'};color:${sel?'white':'var(--g600)'}">${n}</button>`;
+      }).join('')}
+    </div>
+    <div style="font-size:12px;font-weight:700;color:${npsColor};text-align:center">${npsLabel}</div>
+    <div class="f" style="margin-top:.875rem"><label>Percepción general</label>
+      <div class="rpills">${['Muy satisfecho','Satisfecho','Neutral','Insatisfecho'].map(v=>`<label class="rp"><input type="radio" name="seg-percep" value="${v}" ${r.percepcion===v?'checked':''}> ${v}</label>`).join('')}</div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-hdr">🏪 Comentarios del mercado</div>
+    <div class="seg-field-hint">¿Qué está pasando en su zona? Demanda, competencia, precios, tendencias...</div>
+    <textarea id="seg-mercado-notas" style="width:100%;min-height:90px;padding:9px 11px;border:1.5px solid var(--g200);border-radius:var(--rs);font-size:14px;background:var(--g50);resize:vertical" placeholder="Ej: Menor movimiento en El Porvenir, subió fierro de competencia...">${r.mercado_notas||''}</textarea>
+  </div>
+  <div class="card">
+    <div class="card-hdr">💬 Comentarios sobre SX → para nosotros</div>
+    <div class="seg-field-hint">¿Qué dice el ferretero sobre el canal? Quejas, elogios, pedidos, reclamos...</div>
+    <textarea id="seg-sx-notas" style="width:100%;min-height:90px;padding:9px 11px;border:1.5px solid var(--g200);border-radius:var(--rs);font-size:14px;background:var(--g50);resize:vertical" placeholder="Ej: Pide más cotizaciones los martes, no le gustan las demoras en confirmación...">${r.sx_notas||''}</textarea>
+  </div>
+  <div class="card">
+    <div class="card-hdr">🎯 Sugerencias de SX → al ferretero</div>
+    <div class="seg-field-hint">¿Qué le recomendamos o pedimos en esta visita?</div>
+    <textarea id="seg-sug-sx" style="width:100%;min-height:90px;padding:9px 11px;border:1.5px solid var(--g200);border-radius:var(--rs);font-size:14px;background:var(--g50);resize:vertical" placeholder="Ej: Le pedimos enviar precios más temprano, le sugerimos activar cemento...">${r.sug_sx_notas||''}</textarea>
+  </div>
+  <div class="btnrow">
+    <button class="btn-s" onclick="setSegStep(0)">← Volver</button>
+    <button class="btn-p" onclick="saveSeg1Activa();setSegStep(2)">Guardar visita →</button>
+  </div>
+</div>`;
+}
+
+function segS1Inactiva(r){
+  const objHtml=OBJ_INACTIVAS.map((o,i)=>`
+    <div class="obj-opt ${r.obj_inactiva===o.txt?'sel':''}" onclick="selObjInact(${i})">
+      <div class="obj-top"><input type="radio" name="obj-inact-r" value="${o.txt}" ${r.obj_inactiva===o.txt?'checked':''}><span>${o.txt}</span></div>
+      ${o.resp?`<div class="obj-resp">💬 <em>${o.resp}</em></div>`:''}
+    </div>`).join('');
+  return `<div class="sw">
+  <div class="card">
+    <div class="card-hdr">🔎 ¿Por qué dejó de trabajar con SX?</div>
+    <div class="ai" style="margin-bottom:.875rem">Selecciona la objeción principal. La respuesta sugerida te ayuda a rebatirla en el momento.</div>
+    <div id="obj-inact-list">${objHtml}</div>
+    <div class="f" style="margin-top:.625rem" id="obj-inact-otro-wrap" ${r.obj_inactiva==='Otro motivo (especificar)'?'':'style="display:none"'}>
+      <label>Especificar</label><input id="obj-inact-otro" value="${r.obj_inactiva_otra||''}" placeholder="Describe el motivo...">
+    </div>
+  </div>
+  <div class="folleto-card">
+    <div class="folleto-ico">📋</div>
+    <div class="folleto-title">Re-presentar el folleto</div>
+    <div class="folleto-txt">Muestra el folleto actualizado. Menciona los bonos de fidelización (BRONCE / PLATA / ORO) y casos de éxito recientes en su ciudad.</div>
+    <div style="margin-top:.875rem">
+      <div class="rpills" style="justify-content:center">
+        <label class="rp"><input type="radio" name="seg-folleto" value="si" ${r.folleto_presentado==='si'?'checked':''}> ✅ Sí lo presenté</label>
+        <label class="rp"><input type="radio" name="seg-folleto" value="no" ${r.folleto_presentado==='no'?'checked':''}> No fue posible</label>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-hdr">🔄 ¿Se reactivó?</div>
+    <div class="ysn-row">
+      <button class="react-btn react-no ${r.reactivado===false?'sel':''}" onclick="setReactivado(false)">No, sigue inactiva</button>
+      <button class="react-btn react-si ${r.reactivado===true?'sel':''}" onclick="setReactivado(true)">✅ Sí, se reactivó</button>
+    </div>
+    <div id="react-si-box" class="nc-box ${r.reactivado===true?'on':''}">
+      <div class="as" style="margin-top:.75rem">¡Excelente! Registra el compromiso.</div>
+      <div class="f" style="margin-top:.75rem"><label>Fecha compromiso — primer envío de precios</label>
+        <input type="date" id="seg-fecha-react" value="${r.fecha_react||''}"></div>
+      <div class="f"><label>Contacto confirmado para el grupo WA</label>
+        <input type="text" id="seg-cont-react" value="${r.contacto_react||''}" placeholder="Nombre y número..."></div>
+    </div>
+    <div class="f" style="margin-top:.875rem"><label>Notas de la visita</label>
+      <textarea id="seg-notas" style="width:100%;min-height:80px;padding:9px 11px;border:1.5px solid var(--g200);border-radius:var(--rs);font-size:14px;background:var(--g50);resize:vertical" placeholder="Contexto relevante...">${r.notas||''}</textarea>
+    </div>
+  </div>
+  <div class="btnrow">
+    <button class="btn-s" onclick="setSegStep(0)">← Volver</button>
+    <button class="btn-p" onclick="saveSeg1Inactiva();setSegStep(2)">Guardar visita →</button>
+  </div>
+</div>`;
+}
+
+// ── SEG STEP 2: RESULTADO SEGUIMIENTO ──
+function segS2(){
+  const r=segRec;
+  const ferr=TODAS_FERRETERIAS.find(f=>f.cod===r.seg_cod);
+  const nomFerr=ferr?ferr.nom:r.seg_cod||'—';
+  const ciudadFerr=ferr?ferr.ciudad:'—';
+  const isActiva=r.seg_estado==='activa';
+  const isReact=!isActiva&&r.reactivado===true;
+  const ico=isReact?'🔄':isActiva?'✅':'⏸';
+  const titulo=isReact?'¡Reactivación registrada!':isActiva?'Seguimiento activa guardado':'Seguimiento inactiva guardado';
+  const rows=isActiva?[
+    ['Ferretería',nomFerr],['Ciudad',ciudadFerr],['Estado','Activa'],
+    ['NPS',r.nps!==undefined&&r.nps!==null?r.nps+'/10':'—'],
+    ['Percepción',r.percepcion||'—'],
+    ['GPS',r.lat?r.lat+', '+r.lon:'No capturado'],
+  ]:[
+    ['Ferretería',nomFerr],['Ciudad',ciudadFerr],['Estado',isReact?'Reactivada ✅':'Inactiva'],
+    ['Objeción',r.obj_inactiva||'—'],
+    ['Folleto presentado',r.folleto_presentado==='si'?'Sí':'No'],
+    ...(isReact?[['Fecha compromiso',r.fecha_react||'—'],['Contacto react.',r.contacto_react||'—']]:[] ),
+    ['GPS',r.lat?r.lat+', '+r.lon:'No capturado'],
+  ];
+  return `<div class="sw">
+  <div class="result-card">
+    <div class="result-ico">${ico}</div>
+    <div class="result-title">${titulo}</div>
+    <span class="status-badge ${isActiva?'sb-reg':isReact?'sb-reg':'sb-vi'}">${isActiva?'Seguimiento activa':isReact?'Reactivada':'Seguimiento inactiva'}</span>
+  </div>
+  <div class="recap">
+    ${rows.map(rw=>`<div class="rrow"><span class="rl">${rw[0]}</span><span class="rv">${rw[1]||'—'}</span></div>`).join('')}
+  </div>
+  ${isReact?`<div class="as">Reactivación registrada. Recuerda crear el grupo WA si no existe y confirmar el envío de precios en la fecha acordada.</div>`:''}
+  ${(r.mercado_notas||r.sx_notas||r.sug_sx_notas)?`<div class="card" style="margin-top:.5rem"><div class="card-hdr">📝 Notas registradas</div>
+    ${r.mercado_notas?`<div style="margin-bottom:.5rem"><strong style="font-size:11px;color:var(--g600)">MERCADO</strong><div style="font-size:13px;line-height:1.6;margin-top:2px">${r.mercado_notas}</div></div>`:''}
+    ${r.sx_notas?`<div style="margin-bottom:.5rem"><strong style="font-size:11px;color:var(--g600)">COMENTARIOS SX</strong><div style="font-size:13px;line-height:1.6;margin-top:2px">${r.sx_notas}</div></div>`:''}
+    ${r.sug_sx_notas?`<div><strong style="font-size:11px;color:var(--g600)">SUGERENCIAS SX→FERRETERO</strong><div style="font-size:13px;line-height:1.6;margin-top:2px">${r.sug_sx_notas}</div></div>`:''}
+  </div>`:''}
+  ${r.notas?`<div class="card" style="margin-top:.5rem"><div class="card-hdr">📝 Notas</div><div style="font-size:13px;color:var(--g800);line-height:1.6">${r.notas}</div></div>`:''}
+  <button class="btn-p btn-blue" style="margin-top:.75rem" onclick="goHome()">➕ Nueva visita</button>
+</div>`;
+}
+
+// ── SEG HELPERS ──
+function setSegCiudad(ciudad){
+  saveSeg0partial();
+  segRec.seg_ciudad=ciudad;
+  segRec.seg_cod=''; // reset selection when city changes
+  renderSeg();
+}
+function setSegEstado(est){
+  saveSeg0partial();
+  segRec.seg_estado=est;
+  segRec.seg_cod='';
+  renderSeg();
+}
+function saveSeg0partial(){
+  const sel=document.getElementById('seg-ferr');
+  if(sel) segRec.seg_cod=sel.value;
+}
+function saveSeg0(){
+  const sel=document.getElementById('seg-ferr');
+  if(!segRec.seg_ciudad){alert('Selecciona una ciudad.');return false;}
+  if(!sel||!sel.value){alert('Selecciona una ferretería.');return false;}
+  segRec.seg_cod=sel.value;
+  return true;
+}
+function setNPS(n){
+  segRec.nps=n;
+  // Re-render NPS buttons without full re-render
+  const container=document.getElementById('nps-btns');
+  if(container){
+    container.querySelectorAll('button').forEach((btn,i)=>{
+      const val=i;
+      const bg=val>=9?'var(--green)':val>=7?'var(--amber)':'var(--red)';
+      const sel=val===n;
+      btn.style.borderColor=sel?bg:'var(--g200)';
+      btn.style.background=sel?bg:'white';
+      btn.style.color=sel?'white':'var(--g600)';
+    });
+    // update label
+    const lbl=container.nextElementSibling;
+    if(lbl){
+      const color=n>=9?'var(--green)':n>=7?'var(--amber)':'var(--red)';
+      const txt=n>=9?'Promotor 😊':n>=7?'Neutro 😐':'Detractor 😟';
+      lbl.style.color=color;lbl.textContent=txt;
+    }
+  }
+}
+function doGPSSeg(){
+  const st=document.getElementById('seg-gst');
+  st.textContent='⏳ Obteniendo...';
+  navigator.geolocation.getCurrentPosition(p=>{
+    segRec.lat=p.coords.latitude.toFixed(7);
+    segRec.lon=p.coords.longitude.toFixed(7);
+    segRec.gpsAcc=Math.round(p.coords.accuracy);
+    st.textContent=`✅ ${(+segRec.lat).toFixed(4)}, ${(+segRec.lon).toFixed(4)} (±${segRec.gpsAcc}m)`;
+    st.style.color='#1a7a3c';
+  },()=>{st.textContent='❌ No disponible';st.style.color='#c0392b';},{enableHighAccuracy:true,timeout:10000});
+}
+function addPhSeg(inp){
+  Array.from(inp.files).forEach(f=>{
+    const r=new FileReader();r.onload=e=>{segPhotos.local.push(e.target.result);renderPhSeg();};r.readAsDataURL(f);
+  });
+}
+function renderPhSeg(){
+  const g=document.getElementById('seg-pgrid');if(!g)return;
+  g.innerHTML=segPhotos.local.map((d,i)=>`<div class="pthumb"><img src="${d}"><button class="pdel" onclick="delPhSeg(${i})">×</button></div>`).join('');
+}
+function delPhSeg(i){segPhotos.local.splice(i,1);renderPhSeg();}
+function afterSeg(){
+  if(segStep===0){renderPhSeg();}
+}
+function selObjInact(idx){
+  const o=OBJ_INACTIVAS[idx];
+  if(!o)return;
+  segRec.obj_inactiva=o.txt;
+  const wrap=document.getElementById('obj-inact-otro-wrap');
+  if(wrap) wrap.style.display=o.txt.startsWith('Otro')?'block':'none';
+  document.querySelectorAll('#obj-inact-list .obj-opt').forEach((el,i)=>{el.classList.toggle('sel',i===idx);});
+  const radio=document.querySelector(`input[name="obj-inact-r"][value="${o.txt}"]`);
+  if(radio) radio.checked=true;
+}
+function setReactivado(val){
+  segRec.reactivado=val;
+  const box=document.getElementById('react-si-box');
+  if(box) box.classList.toggle('on',val===true);
+  document.querySelectorAll('.react-btn').forEach(b=>{b.classList.remove('sel');});
+  const btn=val?document.querySelector('.react-si'):document.querySelector('.react-no');
+  if(btn) btn.classList.add('sel');
+}
+function saveSeg1Activa(){
+  const g=id=>{const e=document.getElementById(id);return e?e.value.trim():'';};
+  segRec.percepcion=document.querySelector('input[name="seg-percep"]:checked')?.value||'';
+  segRec.mercado_notas=g('seg-mercado-notas');
+  segRec.sx_notas=g('seg-sx-notas');
+  segRec.sug_sx_notas=g('seg-sug-sx');
+  finalizeSegVisit();
+}
+function saveSeg1Inactiva(){
+  const g=id=>{const e=document.getElementById(id);return e?e.value.trim():'';};
+  if(!segRec.obj_inactiva){segRec.obj_inactiva=document.querySelector('input[name="obj-inact-r"]:checked')?.value||'';}
+  if(segRec.obj_inactiva&&segRec.obj_inactiva.startsWith('Otro')) segRec.obj_inactiva_otra=g('obj-inact-otro');
+  segRec.folleto_presentado=document.querySelector('input[name="seg-folleto"]:checked')?.value||'no';
+  if(segRec.reactivado===true){
+    segRec.fecha_react=g('seg-fecha-react');
+    segRec.contacto_react=g('seg-cont-react');
+  }
+  segRec.notas=g('seg-notas');
+  finalizeSegVisit();
+}
+// ── GOOGLE SHEETS SYNC ──
+const GS_URL = 'https://script.google.com/macros/s/AKfycbzSK8uKvwZ_BIiHM8Keh9LedD1Cx-1mSGodiAxKH91oHV4s6WYKTCuMmKp3JhJZsqiN/exec'; // ← pegar URL después de publicar
+
+function postToSheets(data){
+  if(!GS_URL||GS_URL.startsWith('REEMPLAZAR')) return; // skip si no configurado
+  fetch(GS_URL,{method:'POST',body:JSON.stringify(data)})
+    .catch(()=>{}); // silencioso — no bloquea el flujo
+}
+
+function finalizeSegVisit(){
+  const n=new Date();
+  segRec.fecha=p2(n.getDate())+'/'+p2(n.getMonth()+1)+'/'+n.getFullYear();
+  segRec.hora=p2(n.getHours())+':'+p2(n.getMinutes());
+  segRec.tipo_visita='seguimiento';
+  segRec.photos={local:[...segPhotos.local]};
+  const v={...segRec};
+  visits.push(v);
+  postToSheets(v);
+  updCount();
+}
+
+const DISTRITOS=['Trujillo','La Esperanza','El Porvenir','Florencia de Mora','Huanchaco','Víctor Larco','Laredo','Moche','Alto Trujillo','Salaverry'];
+const VECINOS={'Trujillo':['Trujillo','La Esperanza','El Porvenir','Florencia de Mora','Víctor Larco','Moche'],'La Esperanza':['La Esperanza','Trujillo','El Porvenir','Florencia de Mora','Alto Trujillo'],'El Porvenir':['El Porvenir','Trujillo','La Esperanza','Florencia de Mora','Laredo','Alto Trujillo'],'Florencia de Mora':['Florencia de Mora','Trujillo','La Esperanza','El Porvenir'],'Huanchaco':['Huanchaco','Trujillo','La Esperanza'],'Víctor Larco':['Víctor Larco','Trujillo','Moche','Salaverry'],'Laredo':['Laredo','El Porvenir','Trujillo'],'Moche':['Moche','Trujillo','Víctor Larco','Salaverry'],'Alto Trujillo':['Alto Trujillo','La Esperanza','El Porvenir'],'Salaverry':['Salaverry','Moche','Víctor Larco']};
+const CARGOS=['Dueño','Encargado','Administrador','Vendedor','Otro'];
+const DIAS=['Lunes a Sábado','Lunes a Domingo','Lunes a Viernes'];
+const HORARIOS=['7am a 5pm','7am a 6pm','8am a 5pm','8am a 6pm'];
+const TIEMPOS=['Mismo día','Hasta 12 horas','Hasta 24 horas','Hasta 48 horas'];
+const VHS=[{id:'cg',ico:'🚛',name:'Camión grande'},{id:'cm',ico:'🚚',name:'Camión mediano'},{id:'mf',ico:'🛺',name:'Motofurgón'},{id:'vq',ico:'🏗️',name:'Volquete'}];
+const NC_RAZONES=['Estaba cerrado','No había nadie disponible','Me dijeron que volviera','No me quisieron atender'];
+const OBJECIONES=[
+  {txt:'No quiero que mis clientes sepan mis precios',resp:'No publicamos su lista. Solo usamos su información para cotizarle al cliente interesado y derivarle la oportunidad.'},
+  {txt:'Eso me va a quitar tiempo',resp:'Al contrario, le enviamos clientes listos para comprar. Solo responda como lo hace normalmente.'},
+  {txt:'Ya tengo mis clientes',resp:'Perfecto, esto no los reemplaza. Es un canal adicional para mover más volumen sin invertir en publicidad.'},
+  {txt:'No quiero emitir factura',resp:'No exigimos modalidad específica, pero sí buscamos formalidad porque nuestros clientes valoran respaldo.'},
+  {txt:'Eso no funciona / desconfianza',resp:'En Lima ya trabajamos con 40+ ferreterías activas generando ventas constantes. Replicamos ese éxito en Trujillo.'},
+  {txt:'Voy a pensarlo',resp:'Trabajamos con un número limitado por zona. Si no se registra ahora, es posible que luego ya tengamos la zona cubierta.'},
+  {txt:'¿Qué ganan?',resp:'Ayudarlos a vender más fierro para que repongan más fierro Siderperu.'},
+  {txt:'¿Solo se vende fierro?',resp:'No. Se vende todo el portafolio de casco gris: fierro, cemento, ladrillo, agregados, alambre y clavo.'}
+];
+const CHECKLIST=[
+  {q:'¿Maneja fierro BC y cemento de forma habitual?',consejo:'Confirma que los veas físicamente en el local. Si no están a la vista, pregunta dónde los almacenan y verifica antes de marcar Sí.'},
+  {q:'¿Cuenta con stock propio de materiales en su local o almacén?',consejo:'Un local solo con mostrador y catálogo no cuenta. Asegúrate de que haya mercadería real disponible para despachar antes de marcar Sí.'},
+  {q:'¿Cuenta con vehículo propio para despacho?',consejo:'Pregunta si es propio o contratado. Solo cuenta si la placa es de la ferretería o del dueño. Fletes de terceros no son confiables para nuestros tiempos.'},
+  {q:'¿Quien maneja el WhatsApp puede tomar decisiones sobre precios?',consejo:'Evalúa esto según la conversación. Si quien responde el WhatsApp consulta al dueño para cada precio, el envío diario no será confiable. Debe poder confirmar precios en el momento.'}
+];
+const PROG=[20,40,60,80,100];
+const SNMS=['Observable','Folleto','Conversación y checklist','Registro','Resultado'];
+const ELBL={'sin-contacto':'👁️ Sin contacto','visitada':'💬 Visitada','prospecto-no-apto':'⏳ Prospecto no apto','registrada':'✅ Registrada'};
+const ECLS={'sin-contacto':'bsc','visitada':'bvi','prospecto-no-apto':'bpna','registrada':'breg'};
+
+function show(id){document.querySelectorAll('.scr').forEach(s=>s.classList.remove('on'));document.getElementById(id).classList.add('on');window.scrollTo(0,0);}
+function goHome(){show('scr-home');updCount();}
+function goRes(){buildRes();show('scr-res');}
+function confirmBack(){if(step===0||confirm('¿Salir? Los datos no se guardarán.')){show('scr-tipo');}}
+function startForm(){
+  rec={vhs:{},contactos:[{nombre:'',cargo:'Dueño',tel:'',enc:true}]};
+  photos={local:[],vehiculo:[]};
+  chkA={0:null,1:null,2:null,3:null};
+  customObjs=[];customVhs=[];sigOK=false;interesVal=null;step=0;
+  render();show('scr-form');
+}
+function setStep(n){step=n;render();}
+function render(){
+  document.getElementById('tb-step').textContent='Paso '+(step+1)+' — '+SNMS[step];
+  document.getElementById('prog').style.width=PROG[step]+'%';
+  const fns=[s0,s1,s2,s3,s4];
+  document.getElementById('fc').innerHTML=(fns[step]||s0)();
+  after();window.scrollTo(0,0);
+}
+
+// ══ STEP 0: OBSERVABLE ══
+function s0(){
+  const r=rec;
+  const vhsHtml=VHS.map(v=>{
+    const on=r.vhs[v.id]?.on;const qty=r.vhs[v.id]?.qty||1;
+    return `<div class="vh-item ${on?'on':''}" id="vhi-${v.id}">
+      <div class="vh-hdr"><div class="vh-ico">${v.ico}</div><div class="vh-name">${v.name}</div>
+        <button class="vh-tog ${on?'on':''}" onclick="togVH('${v.id}')">${on?'✓':'+'}</button></div>
+      <div class="vh-qty"><span class="vlbl">Cantidad:</span>
+        <div class="qty"><button class="qty-btn" onclick="chgQty('${v.id}',-1)">−</button><div class="qty-val" id="qv-${v.id}">${qty}</div><button class="qty-btn" onclick="chgQty('${v.id}',1)">+</button></div>
+      </div>
+    </div>`;
+  }).join('');
+  const cvhHtml=customVhs.map((v,i)=>`
+    <div class="vh-item on"><div class="vh-hdr"><div class="vh-ico">${v.ico}</div><div class="vh-name">${v.name}</div>
+      <button class="vh-tog on" onclick="delCVH(${i})">×</button></div>
+    <div class="vh-qty"><span class="vlbl">Cantidad:</span>
+      <div class="qty"><button class="qty-btn" onclick="chgCQty(${i},-1)">−</button><div class="qty-val" id="cqv-${i}">${v.qty||1}</div><button class="qty-btn" onclick="chgCQty(${i},1)">+</button></div>
+    </div></div>`).join('');
+  return `<div class="sw">
+  <div class="ai">📍 Completa lo que puedes observar sin que te atiendan.</div>
+  <div class="card">
+    <div class="card-hdr">🏪 Identificación</div>
+    <div class="f"><label>Nombre / referencia del local</label><input id="f-nc" value="${r.nc_obs||''}" placeholder="Ej: Ferretería Torres" autocomplete="off"></div>
+    <div class="frow">
+      <div class="f"><label>Distrito</label>
+        <select id="f-dist"><option value="">Seleccionar</option>${DISTRITOS.map(d=>`<option ${r.distrito===d?'selected':''}>${d}</option>`).join('')}</select>
+      </div>
+      <div class="f"><label>GPS</label>
+        <button type="button" class="gps-btn" onclick="doGPS()" style="height:40px">📡 Capturar</button>
+        <div class="gps-st" id="gst">${r.lat?`✅ ${(+r.lat).toFixed(4)}, ${(+r.lon).toFixed(4)}`:''}</div>
+        <input type="hidden" id="f-lat" value="${r.lat||''}"><input type="hidden" id="f-lon" value="${r.lon||''}">
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-hdr">🏪 Local y productos</div>
+    <div class="f"><label>¿Se ve almacén propio?</label>
+      <div class="rpills">${['Sí','No','No se pudo ver'].map(v=>`<label class="rp"><input type="radio" name="alm" value="${v}" ${r.alm===v?'checked':''}> ${v}</label>`).join('')}</div>
+    </div>
+    <div class="f"><label>Categorías visibles</label>
+      <div class="chk-grid">
+        ${['Fierro BC','Cemento','Ladrillo','Alambre','Clavos','Agregados'].map(c=>`<label class="ci"><input type="checkbox" class="ccat" value="${c}" ${(r.cats||[]).includes(c)?'checked':''}><span>${c}</span></label>`).join('')}
+        <label class="ci warn" style="grid-column:1/-1"><input type="checkbox" id="cat-nd" ${r.cat_nd?'checked':''}><span>⚠️ No se pudo identificar / local cerrado</span></label>
+      </div>
+    </div>
+    <div class="f"><label>Fotos del local / fachada</label>
+      <label class="photo-btn">📷 Tomar / seleccionar fotos<input type="file" accept="image/*" capture="environment" style="display:none" onchange="addPh(this,'local')"></label>
+      <div class="pgrid" id="pgrid-local"></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-hdr">🚛 Vehículos visibles</div>
+    <div style="font-size:12px;color:var(--g600);margin-bottom:.75rem;font-style:italic">Activa los que puedas observar o confirmar</div>
+    ${vhsHtml}${cvhHtml}
+    <button class="add-vh" onclick="addCVH()">+ Añadir otro tipo</button>
+    <div class="f" style="margin-top:.875rem"><label>Foto del vehículo</label>
+      <label class="photo-btn">📷 Fotografiar vehículo<input type="file" accept="image/*" capture="environment" style="display:none" onchange="addPh(this,'vehiculo')"></label>
+      <div class="pgrid" id="pgrid-vehiculo"></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-hdr">🚪 ¿Te atendieron?</div>
+    <div class="ysn-row">
+      <button class="btn-no" onclick="togNC(true)">No me atendieron</button>
+      <button class="btn-si" onclick="saveObs();setStep(1)">Sí, me atendieron →</button>
+    </div>
+    <div class="nc-box" id="nc-box">
+      <div class="f"><label>Razón</label>
+        <select id="nc-razon"><option value="">Seleccionar</option>
+          ${NC_RAZONES.map(r=>`<option>${r}</option>`).join('')}
+          <option value="otra">Otra...</option>
+        </select>
+      </div>
+      <div class="f" id="nc-otra-wrap" style="display:none"><label>Especificar</label><input id="nc-otra" placeholder="Describe la razón..."></div>
+      <div class="frow" style="margin-top:.75rem">
+        <button class="btn-s" onclick="togNC(false)">← Cancelar</button>
+        <button class="btn-p" onclick="saveObs();finalizeNC()">Guardar y salir</button>
+      </div>
+    </div>
+  </div>
+</div>`;
+}
+
+// ══ STEP 1: FOLLETO ══
+function s1(){
+  return `<div class="sw">
+  <div class="folleto-card">
+    <div class="folleto-ico">📋</div>
+    <div class="folleto-title">Momento de presentar el folleto</div>
+    <div class="folleto-txt">Muestra al ferretero cómo funciona SIDEREXPRESS, los beneficios del canal y casos de éxito en Lima.<br><br>Explica: cotizaciones automáticas, anonimato de precios, bonos de fidelización y la red de clientes que ya operamos.</div>
+    <button class="folleto-btn" onclick="setStep(2)">✅ Ya presenté el folleto → Continuar</button>
+  </div>
+  <div class="btnrow"><button class="btn-s" onclick="setStep(0)">← Volver</button></div>
+</div>`;
+}
+
+// ══ STEP 2: CONVERSACIÓN + CHECKLIST ══
+function s2(){
+  const r=rec;
+  const allObjs=[...OBJECIONES,...customObjs.map(t=>({txt:t,resp:''}))];
+  const chkHtml=CHECKLIST.map((c,i)=>`
+    <div class="chk-item" id="chki-${i}">
+      <div class="chk-item-q">${i+1}. ${c.q}</div>
+      <div class="chk-consejo"><strong>💡 Consejo para la promotora</strong>${c.consejo}</div>
+      <div class="chk-ans">
+        <button class="chk-btn yes ${chkA[i]===true?'sel':''}" onclick="setChk(${i},true)">✓ Sí</button>
+        <button class="chk-btn no ${chkA[i]===false?'sel':''}" onclick="setChk(${i},false)">✗ No</button>
+      </div>
+    </div>`).join('');
+  return `<div class="sw">
+  <div class="card">
+    <div class="card-hdr">🎯 ¿Mostró interés en registrarse?</div>
+    <div class="ysn-row">
+      <button class="btn-no" onclick="setInteres(false)">No le interesó</button>
+      <button class="btn-si" onclick="setInteres(true)">Sí, quiere registrarse</button>
+    </div>
+    <div class="interes-expand ${interesVal===false?'on':''}" id="expand-no">
+      <div class="f" style="margin-top:.875rem"><label>Objeción principal</label>
+        <div id="obj-list">
+          ${allObjs.map((o,i)=>`
+          <div class="obj-opt ${r.objecion===o.txt?'sel':''}" onclick="selObj(${i})">
+            <div class="obj-top"><input type="radio" name="obj-r" value="${o.txt}" ${r.objecion===o.txt?'checked':''}><span>${o.txt}</span></div>
+            ${o.resp?`<div class="obj-resp">💬 <em>${o.resp}</em></div>`:''}
+          </div>`).join('')}
+        </div>
+        <div class="obj-add-row"><input type="text" id="obj-new" placeholder="Otra objeción..."><button onclick="addObj()">Añadir</button></div>
+      </div>
+      <div class="f"><label>Notas</label><textarea id="r-notas" placeholder="Contexto de la conversación...">${r.notas||''}</textarea></div>
+      <button class="btn-p" style="margin-top:.75rem" onclick="saveConv();finalizeVisited()">✅ Guardar visita</button>
+    </div>
+    <div class="interes-expand ${interesVal===true?'on':''}" id="expand-si">
+      <div style="margin-top:.875rem" class="ai">Verifica los criterios mínimos. Haz las preguntas directamente al ferretero.</div>
+      ${chkHtml}
+      <div id="chk-result"></div>
+    </div>
+  </div>
+  <div class="btnrow"><button class="btn-s" onclick="setStep(1)">← Volver</button></div>
+</div>`;
+}
+
+// ══ STEP 3: REGISTRO ══
+function s3(){
+  const r=rec;
+  const cobDisplay=r.distrito&&VECINOS[r.distrito]?VECINOS[r.distrito].join(', '):'Se calculará según el distrito del local';
+  return `<div class="sw">
+  <div class="as">✅ Cumple los criterios. Completa los datos de afiliación.</div>
+  <div class="card">
+    <div class="card-hdr">👥 Personas de contacto</div>
+    <div style="font-size:12px;color:var(--g600);margin-bottom:.75rem;font-style:italic">Agrega todas las personas relevantes. Marca quién responderá el WhatsApp de SX.</div>
+    <div id="cont-list">${(r.contactos||[]).map((c,i)=>renderCont(c,i)).join('')}</div>
+    <button class="add-cont" onclick="addCont()">+ Agregar persona</button>
+  </div>
+  <div class="card">
+    <div class="card-hdr">🕐 Horario de operación</div>
+    <div class="frow">
+      <div class="f"><label>Lunes a Viernes — Apertura</label>
+        <select id="r-hor-lv-ap"><option value="">Hora de apertura</option>
+          ${['7:00 am','7:30 am','8:00 am','8:30 am','9:00 am'].map(h=>`<option ${(r.hor_lv_ap||'')==h?'selected':''}>${h}</option>`).join('')}
+        </select>
+      </div>
+      <div class="f"><label>Lunes a Viernes — Cierre</label>
+        <select id="r-hor-lv-ci"><option value="">Hora de cierre</option>
+          ${['5:00 pm','5:30 pm','6:00 pm','6:30 pm','7:00 pm'].map(h=>`<option ${(r.hor_lv_ci||'')==h?'selected':''}>${h}</option>`).join('')}
+        </select>
+      </div>
+    </div>
+    <div class="frow" style="margin-top:.5rem">
+      <div class="f"><label>Sábados — Apertura</label>
+        <select id="r-hor-sa-ap"><option value="">Hora de apertura</option>
+          ${['7:00 am','7:30 am','8:00 am','8:30 am','9:00 am'].map(h=>`<option ${(r.hor_sa_ap||'')==h?'selected':''}>${h}</option>`).join('')}
+          <option value="No abre">No abre sábados</option>
+        </select>
+      </div>
+      <div class="f"><label>Sábados — Cierre</label>
+        <select id="r-hor-sa-ci"><option value="">Hora de cierre</option>
+          ${['12:00 pm','12:30 pm','1:00 pm','1:30 pm','2:00 pm','3:00 pm'].map(h=>`<option ${(r.hor_sa_ci||'')==h?'selected':''}>${h}</option>`).join('')}
+          <option value="No abre">—</option>
+        </select>
+      </div>
+    </div>
+    <div class="fhint" style="margin-top:4px">Si también abre domingos, indicar en notas.</div>
+  </div>
+  <div class="card">
+    <div class="card-hdr">🚛 Condiciones de despacho</div>
+    <div class="f"><label>Cobertura automática</label>
+      <div class="cob-display">${cobDisplay}</div>
+      <div class="fhint">Calculado según el distrito del local. Estos son los distritos que cubrirá desde SX.</div>
+    </div>
+    <div class="f" style="margin-top:.75rem"><label>Tiempo de entrega</label>
+      <div class="rpills">${TIEMPOS.map(t=>`<label class="rp"><input type="radio" name="r-tent" value="${t}" ${r.tent===t?'checked':''}> ${t}</label>`).join('')}</div>
+      <div class="fhint">Para los distritos de cobertura indicados arriba</div>
+    </div>
+    <div class="frow" style="margin-top:.5rem">
+      <div class="f"><label>Monto mínimo sin flete (S/.)</label>
+        <input type="number" id="r-minflete" value="${r.minflete||''}" placeholder="Ej: 5000">
+        <div class="fhint">Pedidos por encima no pagan flete</div>
+      </div>
+      <div class="f"><label>Costo de flete si es menor (S/.)</label>
+        <input type="number" id="r-flete" value="${r.flete||''}" placeholder="Ej: 50">
+        <div class="fhint">Dentro de su zona de cobertura</div>
+      </div>
+    </div>
+  </div>
+  <div class="btnrow">
+    <button class="btn-s" onclick="setStep(2)">← Volver</button>
+    <button class="btn-p" onclick="saveRegData();finalizarReg()">🎉 Completar registro</button>
+  </div>
+</div>`;
+}
+
+// ══ STEP 4: RESULTADO ══
+function s4(){
+  const r=rec;
+  const cfg={
+    'sin-contacto':{ico:'👁️',title:'Visita sin contacto',badge:'sb-sc',blbl:'Sin contacto'},
+    'visitada':{ico:'💬',title:'Visita completada',badge:'sb-vi',blbl:'Visitada / no interesada'},
+    'prospecto-no-apto':{ico:'⏳',title:'Prospecto para seguimiento',badge:'sb-pna',blbl:'Prospecto no apto'},
+    'registrada':{ico:'✅',title:'¡Registro completado!',badge:'sb-reg',blbl:'Registrada'}
+  }[r.estado]||{ico:'📋',title:'Visita guardada',badge:'sb-sc',blbl:'—'};
+  const rows=r.estado==='registrada'?[
+    ['Ferretería',r.nc_obs],['Distrito',r.distrito],['Código',r.codigo],
+    ['GPS',r.lat?r.lat+', '+r.lon:'—'],['Cobertura',r.cobertura],
+    ['Encargado SX',(r.contactos||[]).find(c=>c.enc)?.nombre||'—'],['Horario',r.horario]
+  ]:[
+    ['Ferretería',r.nc_obs||'—'],['Distrito',r.distrito],['Estado',cfg.blbl],
+    ...(r.estado==='sin-contacto'?[['Razón',r.nc_razon||'—']]:
+        r.estado==='visitada'?[['Objeción',r.objecion||'—'],['Notas',r.notas||'—']]:
+        [['Objeción',r.objecion||'—']])
+  ];
+  const nombre=r.nc_obs||'[ferretería]';
+  const nombreGrupo='SX · '+nombre;
+  const waMensaje=`¡Bienvenido a SIDEREXPRESS, ${nombre}! 🎉
+
+Para completar tu activación, por favor envíanos:
+1️⃣ Tu ficha RUC (documento PDF de SUNAT)
+2️⃣ Tus cuentas bancarias: número de cuenta y CCI (puedes enviarlo como imagen o texto)
+
+Nosotros te enviaremos:
+📄 El acuerdo de nivel de servicio
+📋 El formulario de primera carga de precios
+
+¿Alguna duda? Escríbenos aquí mismo. ¡Bienvenido a la red! 🏗️`;
+
+  const grupoCreado=r.grupo_wa;
+
+  return `<div class="sw">
+  <div class="result-card">
+    <div class="result-ico">${cfg.ico}</div>
+    <div class="result-title">${cfg.title}</div>
+    <span class="status-badge ${cfg.badge}">${cfg.blbl}</span>
+  </div>
+  <div class="recap">
+    <div style="font-size:12px;font-weight:700;color:var(--blue);margin-bottom:10px">Resumen</div>
+    ${rows.map(rw=>`<div class="rrow"><span class="rl">${rw[0]}</span><span class="rv">${rw[1]||'—'}</span></div>`).join('')}
+  </div>
+  ${r.estado==='registrada'?`
+  <div class="wa-grupo">
+    <div class="wa-grupo-hdr">💬 Crear grupo de WhatsApp ahora</div>
+    <div class="wa-paso">
+      <div class="wa-paso-txt"><span class="wa-paso-num">1</span>Crea un grupo de WhatsApp con el número del encargado de la ferretería y agrega a los miembros del equipo SX que correspondan a esta zona.</div>
+    </div>
+    <div class="wa-paso">
+      <div class="wa-paso-txt"><span class="wa-paso-num">2</span>Nombra el grupo con este nombre sugerido:</div>
+      <div class="wa-copy-box" id="nombre-grupo">${nombreGrupo}</div>
+      <button class="btn-copy-sm" onclick="cpTxt('nombre-grupo',this,'✅ Copiado')">📋 Copiar nombre</button>
+    </div>
+    <div class="wa-paso">
+      <div class="wa-paso-txt"><span class="wa-paso-num">3</span>Pega este mensaje de bienvenida en el grupo:</div>
+      <div class="wa-msg-pre" id="wa-bienvenida">${waMensaje}</div>
+      <button class="btn-copy-sm" onclick="cpTxt('wa-bienvenida',this,'✅ Copiado')">📋 Copiar mensaje</button>
+    </div>
+    <div class="wa-paso">
+      <div class="wa-paso-txt"><span class="wa-paso-num">4</span>Guía al ferretero para que envíe la ficha RUC y sus cuentas bancarias en el grupo ahora mismo.</div>
+    </div>
+    <div class="wa-paso" style="border-top:2px solid #25D366;padding-top:1rem">
+      <div class="wa-paso-txt" style="font-weight:700;margin-bottom:.75rem">¿Se creó el grupo?</div>
+      <div style="display:flex;gap:10px">
+        <button id="btn-grupo-si" onclick="setGrupoWA(true)"
+          style="flex:1;padding:13px;border:2px solid ${grupoCreado===true?'#25D366':'var(--g200)'};border-radius:var(--r);font-size:14px;font-weight:700;cursor:pointer;background:${grupoCreado===true?'#25D366':'white'};color:${grupoCreado===true?'white':'var(--g600)'}">
+          ✅ Sí, grupo creado
+        </button>
+        <button id="btn-grupo-no" onclick="setGrupoWA(false)"
+          style="flex:1;padding:13px;border:2px solid ${grupoCreado===false?'var(--amber)':'var(--g200)'};border-radius:var(--r);font-size:14px;font-weight:700;cursor:pointer;background:${grupoCreado===false?'var(--amber-l)':'white'};color:${grupoCreado===false?'var(--amber)':'var(--g600)'}">
+          ⏳ Pendiente
+        </button>
+      </div>
+      ${grupoCreado===undefined?'<div style="font-size:11px;color:var(--red);margin-top:6px">Marca una opción para continuar</div>':''}
+    </div>
+  </div>`:''}
+  <div class="btnrow" style="margin-top:.875rem">
+    <button class="btn-s" onclick="setStep(3)">← Volver</button>
+    <button class="btn-p btn-blue" onclick="${r.estado==='registrada'?'finalizarConGrupo()':'goHome()'}">
+      ${r.estado==='registrada'?'➕ Nueva visita':'➕ Nueva visita'}
+    </button>
+  </div>
+</div>`;
+}
+
+// ── AFTER ──
+function after(){
+  if(step===0){
+    renderPh('local');renderPh('vehiculo');
+    document.getElementById('nc-razon')?.addEventListener('change',function(){
+      document.getElementById('nc-otra-wrap').style.display=this.value==='otra'?'block':'none';
+    });
+  }
+  if(step===2&&interesVal===true) evalChk();
+}
+
+// ── SAVE ──
+function saveObs(){
+  const g=id=>{const e=document.getElementById(id);return e?e.value.trim():'';};
+  rec.nc_obs=g('f-nc');rec.distrito=g('f-dist');rec.lat=g('f-lat');rec.lon=g('f-lon');
+  rec.cats=[...document.querySelectorAll('.ccat:checked')].map(c=>c.value);
+  rec.cat_nd=document.getElementById('cat-nd')?.checked||false;
+  rec.alm=document.querySelector('input[name="alm"]:checked')?.value||'';
+  VHS.forEach(v=>{const on=document.getElementById('vhi-'+v.id)?.classList.contains('on');
+    if(on)rec.vhs[v.id]={on:true,name:v.name,ico:v.ico,qty:parseInt(document.getElementById('qv-'+v.id)?.textContent||1)};
+    else delete rec.vhs[v.id];});
+  customVhs.forEach((v,i)=>{v.qty=parseInt(document.getElementById('cqv-'+i)?.textContent||1);});
+}
+function saveConv(){
+  rec.objecion=document.querySelector('input[name="obj-r"]:checked')?.value||'';
+  rec.notas=document.getElementById('r-notas')?.value||'';
+}
+function saveRegData(){
+  const g=id=>{const e=document.getElementById(id);return e?e.value.trim():'';};
+  rec.hor_lv_ap=g('r-hor-lv-ap');rec.hor_lv_ci=g('r-hor-lv-ci');
+  rec.hor_sa_ap=g('r-hor-sa-ap');rec.hor_sa_ci=g('r-hor-sa-ci');
+  // Build display string for PDF/summary
+  rec.horario=(rec.hor_lv_ap&&rec.hor_lv_ci?`L-V: ${rec.hor_lv_ap}–${rec.hor_lv_ci}`:'L-V: —')
+    +' | '+(rec.hor_sa_ap==='No abre'?'Sáb: No abre':rec.hor_sa_ap&&rec.hor_sa_ci?`Sáb: ${rec.hor_sa_ap}–${rec.hor_sa_ci}`:'Sáb: —');
+  rec.tent=document.querySelector('input[name="r-tent"]:checked')?.value||'';
+  rec.minflete=g('r-minflete');rec.flete=g('r-flete');
+  rec.cobertura=rec.distrito&&VECINOS[rec.distrito]?VECINOS[rec.distrito].join(', '):'';
+  saveCont();
+}
+
+// ── GPS ──
+function doGPS(){const st=document.getElementById('gst');st.textContent='⏳ Obteniendo...';st.style.color='#666';navigator.geolocation.getCurrentPosition(p=>{document.getElementById('f-lat').value=p.coords.latitude.toFixed(7);document.getElementById('f-lon').value=p.coords.longitude.toFixed(7);st.textContent=`✅ ${p.coords.latitude.toFixed(4)}, ${p.coords.longitude.toFixed(4)} (±${Math.round(p.coords.accuracy)}m)`;st.style.color='#1a7a3c';},()=>{st.textContent='❌ No disponible. Intenta de nuevo.';st.style.color='#c0392b';},{enableHighAccuracy:true,timeout:10000});}
+
+// ── PHOTOS ──
+function addPh(inp,b){[...inp.files].forEach(f=>{const r=new FileReader();r.onload=e=>{photos[b].push(e.target.result);renderPh(b);};r.readAsDataURL(f);});inp.value='';}
+function delPh(b,i){photos[b].splice(i,1);renderPh(b);}
+function renderPh(b){const g=document.getElementById('pgrid-'+b);if(!g)return;g.innerHTML=photos[b].map((p,i)=>`<div class="pthumb"><img src="${p}"><button class="pdel" onclick="delPh('${b}',${i})">×</button></div>`).join('');}
+
+// ── VEHICLES ──
+function togVH(id){const el=document.getElementById('vhi-'+id);const btn=el.querySelector('.vh-tog');const on=el.classList.toggle('on');btn.classList.toggle('on',on);btn.textContent=on?'✓':'+';}
+function chgQty(id,d){const el=document.getElementById('qv-'+id);if(!el)return;el.textContent=Math.max(1,parseInt(el.textContent)+d);}
+function chgCQty(i,d){const el=document.getElementById('cqv-'+i);if(!el)return;el.textContent=Math.max(1,parseInt(el.textContent)+d);}
+function addCVH(){const name=prompt('Tipo de vehículo:');if(!name)return;const ico=prompt('Emoji:','🚗')||'🚗';saveObs();customVhs.push({name,ico,qty:1});render();}
+function delCVH(i){saveObs();customVhs.splice(i,1);render();}
+
+// ── NO CONTACT ──
+function togNC(show){document.getElementById('nc-box').classList.toggle('on',show);}
+function finalizeNC(){
+  const sel=document.getElementById('nc-razon')?.value;
+  const otra=document.getElementById('nc-otra')?.value;
+  rec.nc_razon=sel==='otra'?otra:sel;
+  rec.estado='sin-contacto';const{fecha,hora}=stamp();rec.fecha=fecha;rec.hora=hora;
+  visits.push({...rec,photos:{local:[...photos.local],vehiculo:[...photos.vehiculo]}});
+  updCount();setStep(4);
+}
+
+// ── INTERES ──
+function setInteres(val){
+  interesVal=val;
+  document.getElementById('expand-no').classList.toggle('on',val===false);
+  document.getElementById('expand-si').classList.toggle('on',val===true);
+  if(val===true) evalChk();
+}
+
+// ── OBJECIONES ──
+function selObj(i){
+  const allObjs=[...OBJECIONES,...customObjs.map(t=>({txt:t,resp:''}))];
+  rec.objecion=allObjs[i].txt;
+  document.querySelectorAll('.obj-opt').forEach((el,j)=>{el.classList.toggle('sel',j===i);el.querySelector('input[type=radio]').checked=j===i;});
+}
+function addObj(){const inp=document.getElementById('obj-new');if(!inp||!inp.value.trim())return;customObjs.push(inp.value.trim());saveConv();render();setTimeout(()=>setInteres(false),10);}
+
+// ── CHECKLIST ──
+function setChk(i,val){
+  chkA[i]=val;
+  const item=document.getElementById('chki-'+i);
+  item.querySelectorAll('.chk-btn').forEach(b=>b.classList.remove('sel'));
+  item.querySelector('.chk-btn.'+(val?'yes':'no')).classList.add('sel');
+  evalChk();
+}
+function evalChk(){
+  const answers=Object.values(chkA);
+  const answered=answers.filter(a=>a!==null).length;
+  const el=document.getElementById('chk-result');if(!el)return;
+  if(answered<4){el.innerHTML='';return;}
+  const passed=answers.filter(a=>a===true).length;
+  if(passed===4){
+    el.innerHTML=`<div class="as">✅ Cumple todos los criterios. Puede proceder al registro.</div>
+    <div class="btnrow"><button class="btn-g" onclick="setStep(3)">Proceder al registro →</button></div>`;
+  } else {
+    el.innerHTML=`<div class="ar">⚠️ No cumple ${4-passed} criterio(s) mínimo(s). Registrar como prospecto para seguimiento.</div>
+    <div class="btnrow"><button class="btn-p" onclick="finalizeNotApt()">Guardar como prospecto →</button></div>`;
+  }
+}
+
+// ── CONTACTS ──
+function renderCont(c,i){return `<div class="cont-item" id="ci-${i}">
+  <div class="cont-hdr"><span class="cont-num">Persona ${i+1}</span>${i>0?`<button class="cont-del" onclick="delCont(${i})">×</button>`:''}</div>
+  <div class="frow">
+    <div class="f"><label>Nombre</label><input class="cn" data-i="${i}" value="${c.nombre||''}" placeholder="Nombre completo"></div>
+    <div class="f"><label>Cargo</label><select class="cc" data-i="${i}">${CARGOS.map(g=>`<option ${c.cargo===g?'selected':''}>${g}</option>`).join('')}</select></div>
+  </div>
+  <div class="f"><label>Teléfono / WhatsApp</label><input type="tel" class="ct" data-i="${i}" value="${c.tel||''}" placeholder="9XXXXXXXX"></div>
+  <button class="enc-btn ${c.enc?'on':''}" onclick="setEnc(${i})">${c.enc?'⭐ Encargado SX':'Marcar como encargado SX'}</button>
+</div>`;}
+function saveCont(){if(!rec.contactos)return;rec.contactos=rec.contactos.map((c,i)=>({nombre:document.querySelector('.cn[data-i="'+i+'"]')?.value||c.nombre,cargo:document.querySelector('.cc[data-i="'+i+'"]')?.value||c.cargo,tel:document.querySelector('.ct[data-i="'+i+'"]')?.value||c.tel,enc:c.enc}));}
+function addCont(){saveCont();rec.contactos.push({nombre:'',cargo:'Encargado',tel:'',enc:false});document.getElementById('cont-list').innerHTML=rec.contactos.map((c,i)=>renderCont(c,i)).join('');}
+function delCont(i){saveCont();rec.contactos.splice(i,1);document.getElementById('cont-list').innerHTML=rec.contactos.map((c,i)=>renderCont(c,i)).join('');}
+function setEnc(i){saveCont();rec.contactos.forEach((c,j)=>c.enc=j===i);document.getElementById('cont-list').innerHTML=rec.contactos.map((c,i)=>renderCont(c,i)).join('');}
+
+// ── FIRMA ──
+function setupSig(){setTimeout(()=>{const c=document.getElementById('sigc');if(!c)return;const dpr=window.devicePixelRatio||1;c.width=c.offsetWidth*dpr;c.height=155*dpr;sigCtx=c.getContext('2d');sigCtx.scale(dpr,dpr);sigCtx.strokeStyle='#1a237e';sigCtx.lineWidth=2.5;sigCtx.lineCap='round';sigCtx.lineJoin='round';sigOK=false;function pos(e){const r=c.getBoundingClientRect(),t=e.touches?e.touches[0]:e;return[t.clientX-r.left,t.clientY-r.top];}c.onmousedown=c.ontouchstart=e=>{e.preventDefault();sigDrw=true;[sigLX,sigLY]=pos(e);};c.onmousemove=c.ontouchmove=e=>{if(!sigDrw)return;e.preventDefault();const[x,y]=pos(e);sigCtx.beginPath();sigCtx.moveTo(sigLX,sigLY);sigCtx.lineTo(x,y);sigCtx.stroke();[sigLX,sigLY]=[x,y];sigOK=true;c.classList.add('ok');const st=document.getElementById('sigst');st.textContent='✅ Firma registrada';st.className='sig-st ok';};c.onmouseup=c.ontouchend=()=>sigDrw=false;},150);}
+function clrSig(){const c=document.getElementById('sigc');sigCtx.clearRect(0,0,c.width,c.height);c.classList.remove('ok');sigOK=false;const st=document.getElementById('sigst');st.textContent='Aún no hay firma';st.className='sig-st';}
+
+// ── FINALIZE ──
+function stamp(){const n=new Date();return{fecha:p2(n.getDate())+'/'+p2(n.getMonth()+1)+'/'+n.getFullYear(),hora:p2(n.getHours())+':'+p2(n.getMinutes())};}
+function finalizeVisited(){
+  rec.estado='visitada';const{fecha,hora}=stamp();rec.fecha=fecha;rec.hora=hora;
+  const v={...rec,photos:{local:[...photos.local],vehiculo:[...photos.vehiculo]}};
+  visits.push(v);postToSheets(v);
+  updCount();setStep(4);
+}
+function finalizeNotApt(){
+  rec.estado='prospecto-no-apto';const{fecha,hora}=stamp();rec.fecha=fecha;rec.hora=hora;
+  const v={...rec,photos:{local:[...photos.local],vehiculo:[...photos.vehiculo]}};
+  visits.push(v);postToSheets(v);
+  updCount();setStep(4);
+}
+function finalizarReg(){
+  const{fecha,hora}=stamp();
+  rec.estado='registrada';rec.fecha=fecha;rec.hora=hora;
+  rec.codigo='SX-'+(rec.distrito||'LIM').substring(0,3).toUpperCase()+'-'+Date.now().toString().slice(-4);
+  rec.grupo_wa=undefined;
+  visits.push({...rec,photos:{local:[...photos.local],vehiculo:[...photos.vehiculo]}});
+  updCount();setStep(4);
+}
+function setGrupoWA(val){
+  const last=visits.filter(v=>v.estado==='registrada').slice(-1)[0];
+  if(last) last.grupo_wa=val;
+  rec.grupo_wa=val;
+  render();
+}
+function finalizarConGrupo(){
+  if(rec.grupo_wa===undefined){render();return;}
+  // Post now that grupo_wa is set
+  const last=visits.filter(v=>v.estado==='registrada').slice(-1)[0];
+  if(last) postToSheets(last);
+  goHome();
+}
+
+// ── COUNTER ──
+function updCount(){const n=visits.length,regs=visits.filter(v=>v.estado==='registrada').length;document.getElementById('vc-n').textContent=n;document.getElementById('vc-d').textContent=n?regs+' registrada(s) · '+(n-regs)+' otra(s)':'Aún no has registrado ninguna visita';document.getElementById('hdr-vc').textContent=n+' visita'+(n!==1?'s':'');}
+function p2(n){return n.toString().padStart(2,'0');}
+
+// ── COPY UTIL ──
+function cpTxt(srcId,btnOrId,resetLabel){
+  const el=document.getElementById(srcId);if(!el)return;
+  const txt=el.textContent||el.innerText;
+  const btn=typeof btnOrId==='string'?document.getElementById(btnOrId):btnOrId;
+  const orig=btn?btn.textContent:'';
+  navigator.clipboard.writeText(txt).then(()=>{if(btn){btn.textContent='✅ Copiado';setTimeout(()=>btn.textContent=resetLabel||orig,2000);}})
+  .catch(()=>{const ta=document.createElement('textarea');ta.value=txt;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);if(btn){btn.textContent='✅ Copiado';setTimeout(()=>btn.textContent=resetLabel||orig,2000);}});}
+
+// ── RESUMEN ──
+function buildRes(){
+  const n=new Date();
+  document.getElementById('rfecha').textContent='Hoy '+p2(n.getDate())+'/'+p2(n.getMonth()+1)+'/'+n.getFullYear()+' · '+visits.length+' visitas';
+  document.getElementById('rlista').innerHTML=visits.length?visits.map((v,i)=>{
+    if(v.tipo_visita==='seguimiento'){
+      const ferr=TODAS_FERRETERIAS.find(f=>f.cod===v.seg_cod);
+      const nom=ferr?ferr.nom:v.seg_cod||'—';
+      const isAct=v.seg_estado==='activa';
+      const isReact=!isAct&&v.reactivado===true;
+      const lbl=isReact?'🔄 Reactivada':isAct?'✅ Seguimiento activa':'⏸ Seguimiento inactiva';
+      const cls=isAct||isReact?'breg':'bvi';
+      return `<div class="vi"><div class="vi-n">${i+1}</div><div class="vi-i"><h4>${nom}</h4><p>📌 Seguimiento · ${v.hora}</p></div><span class="vi-b ${cls}">${lbl}</span></div>`;
+    }
+    return `<div class="vi">
+    <div class="vi-n">${i+1}</div>
+    <div class="vi-i"><h4>${v.nc_obs||'—'}</h4><p>${v.distrito||'—'} · ${v.hora}</p></div>
+    <span class="vi-b ${ECLS[v.estado]||'bsc'}">${ELBL[v.estado]||v.estado}</span>
+  </div>`;
+  }).join(''):'<div style="text-align:center;padding:2rem;color:#999;font-size:13px">Sin visitas aún</div>';
+  const prosp=visits.filter(v=>v.tipo_visita!=='seguimiento');
+  const regs=prosp.filter(v=>v.estado==='registrada');
+  const vis=prosp.filter(v=>v.estado==='visitada');
+  const noApto=prosp.filter(v=>v.estado==='prospecto-no-apto');
+  const sc=prosp.filter(v=>v.estado==='sin-contacto');
+  const segs=visits.filter(v=>v.tipo_visita==='seguimiento');
+  const segAct=segs.filter(v=>v.seg_estado==='activa');
+  const segInact=segs.filter(v=>v.seg_estado==='inactiva'&&!v.reactivado);
+  const segReact=segs.filter(v=>v.reactivado===true);
+  const objs=vis.map(v=>v.objecion).filter(Boolean);
+  const top=objs.length?objs.sort((a,b)=>objs.filter(x=>x===b).length-objs.filter(x=>x===a).length)[0]:'Ninguna';
+  document.getElementById('wmsg').textContent=
+`📊 *REPORTE VISITAS DEL DÍA*\nPromotora: [nombre]\nFecha: ${p2(n.getDate())}/${p2(n.getMonth()+1)}/${n.getFullYear()}\n\n*PROSPECCIÓN:*\n✅ Registradas: ${regs.length}\n💬 Visitadas / no interesadas: ${vis.length}\n⏳ Prospectos no aptos: ${noApto.length}\n👁️ Sin contacto (volver): ${sc.length}\n🚫 Objeción más común: ${top}\n\n*SEGUIMIENTO:*\n📌 Activas visitadas: ${segAct.length}\n⏸ Inactivas visitadas: ${segInact.length}\n🔄 Reactivadas hoy: ${segReact.length}\n\n*REGISTROS NUEVOS:*\n${regs.map(r=>'  • '+(r.nc_obs||'—')+' | '+r.distrito+' | '+r.codigo).join('\n')||'  Ninguno'}\n\n*REACTIVACIONES:*\n${segReact.map(v=>{const f=TODAS_FERRETERIAS.find(x=>x.cod===v.seg_cod);return '  • '+(f?f.nom:v.seg_cod||'—');}).join('\n')||'  Ninguna'}\n\n*VOLVER A VISITAR (sin contacto):*\n${sc.map(v=>'  • '+(v.nc_obs||'—')+' | '+v.distrito+' | '+(v.nc_razon||'—')).join('\n')||'  Ninguna'}\n\n_App SIDEREXPRESS Promotora Trujillo_`;
+}
+function dlRes(){buildRes();const txt=document.getElementById('wmsg').textContent;const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([txt],{type:'text/plain;charset=utf-8'}));a.download='Resumen_SX_'+new Date().toISOString().slice(0,10)+'.txt';a.click();}
+
+// ── PDF REPORTE COMPLETO DEL DÍA ──
+function genReportePDF(){
+  if(!visits.length){alert('Sin visitas registradas aún.');return;}
+  const btn=document.querySelector('.btn-pdf');if(btn){btn.textContent='⏳ Generando PDF...';btn.disabled=true;}
+  setTimeout(()=>{try{
+    const{jsPDF}=window.jspdf;const doc=new jsPDF({unit:'mm',format:'a4'});const W=210,M=15;
+    const n=new Date();const hoy=p2(n.getDate())+'/'+p2(n.getMonth()+1)+'/'+n.getFullYear();
+    // portada
+    doc.setFillColor(26,58,92);doc.rect(0,0,W,40,'F');
+    doc.setTextColor(255,255,255);doc.setFontSize(18);doc.setFont('helvetica','bold');doc.text('SIDEREXPRESS',M,18);
+    doc.setFontSize(11);doc.setFont('helvetica','normal');doc.text('Reporte de visitas del día · '+hoy,M,27);
+    doc.setFontSize(9);doc.text('Total: '+visits.length+' visitas  |  Registradas: '+visits.filter(v=>v.estado==='registrada').length,M,34);
+    let y=52;
+
+    visits.forEach((v,idx)=>{
+      if(y>240){doc.addPage();y=20;}
+      const isSeg=v.tipo_visita==='seguimiento';
+      // cabecera visita
+      const isReg=v.estado==='registrada';
+      let clr;
+      if(isSeg){clr=v.seg_estado==='activa'?[26,122,60]:v.reactivado?[26,122,60]:[183,119,13];}
+      else{clr=isReg?[26,122,60]:v.estado==='visitada'?[183,119,13]:v.estado==='prospecto-no-apto'?[192,57,43]:[100,100,100];}
+      doc.setFillColor(...clr);doc.rect(M,y,W-M*2,9,'F');
+      doc.setTextColor(255,255,255);doc.setFontSize(9);doc.setFont('helvetica','bold');
+      if(isSeg){
+        const ferr=TODAS_FERRETERIAS.find(f=>f.cod===v.seg_cod);
+        const nomF=ferr?ferr.nom:v.seg_cod||'—';
+        const lbl=v.reactivado?'REACTIVADA':v.seg_estado==='activa'?'ACTIVA':'INACTIVA';
+        doc.text(`${idx+1}. [SEGUIMIENTO] ${nomF}  ·  ${lbl}  ·  ${v.hora}`,M+2,y+6);
+      } else {
+        doc.text(`${idx+1}. ${v.nc_obs||'—'}  ·  ${v.distrito||'—'}  ·  ${ELBL[v.estado]||v.estado}  ·  ${v.hora}`,M+2,y+6);
+        if(isReg) doc.text('CÓDIGO: '+v.codigo,W-M-2,y+6,{align:'right'});
+      }
+      y+=12;
+      // datos
+      const sec=(rows)=>{
+        doc.setFont('helvetica','normal');doc.setFontSize(8.5);doc.setTextColor(50,50,50);
+        rows.forEach(r=>{
+          if(!r[1]&&r[1]!==0)return;
+          if(y>272){doc.addPage();y=20;}
+          doc.setFont('helvetica','bold');doc.text(r[0]+':',M+2,y);
+          doc.setFont('helvetica','normal');const ln=doc.splitTextToSize(String(r[1]),125);
+          doc.text(ln,M+45,y);y+=Math.max(5,ln.length*4.5);
+        });
+      };
+      if(isSeg){
+        if(v.seg_estado==='activa'){
+          sec([
+            ['GPS',v.lat?v.lat+', '+v.lon:'No capturado'],
+            ['Mercado',v.mercado||'—'],['Volumen',v.volumen||'—'],
+            ['Zona entrega',v.zona_entrega||'—'],['Otras plat.',v.otras_plat||'—'],
+            ['Sug. ferretero',v.sug_ferretero||'—'],
+            ['Sug. SX entregadas',[(v.sug_sx||[]).join(', '),v.sug_sx_otra].filter(Boolean).join('; ')||'—'],
+            ['Percepción',v.percepcion||'—'],['Notas',v.notas||'—'],
+          ]);
+        } else {
+          sec([
+            ['GPS',v.lat?v.lat+', '+v.lon:'No capturado'],
+            ['Objeción',v.obj_inactiva||'—'+(v.obj_inactiva_otra?' ('+v.obj_inactiva_otra+')':'')],
+            ['Folleto presentado',v.folleto_presentado==='si'?'Sí':'No'],
+            ['Reactivada',v.reactivado===true?'Sí':'No'],
+            ...(v.reactivado===true?[['Fecha compromiso',v.fecha_react||'—'],['Contacto react.',v.contacto_react||'—']]:[] ),
+            ['Notas',v.notas||'—'],
+          ]);
+        }
+      } else {
+      const vhStr=Object.values(v.vhs||{}).map(x=>`${x.ico} ${x.name}: ${x.qty}`).join(' | ')||'—';
+      sec([
+        ['GPS',v.lat?v.lat+', '+v.lon:'No capturado'],
+        ['Almacén',v.alm||'—'],
+        ['Categorías',(v.cats||[]).join(', ')||(v.cat_nd?'No identificado':'—')],
+        ['Flota',vhStr]
+      ]);
+      if(isReg){
+        sec([
+          ['Horario',v.horario||'—'],['Días',v.dias||'—'],
+          ['Entrega',v.tent||'—'],['Cobertura',v.cobertura||'—'],
+          ['Mín. sin flete',v.minflete?'S/. '+v.minflete:'—'],
+          ['Flete si menor',v.flete?'S/. '+v.flete:'—'],
+        ]);
+        (v.contactos||[]).forEach((c,i)=>{
+          if(y>272){doc.addPage();y=20;}
+          doc.setFont('helvetica','bold');doc.setFontSize(8.5);doc.text('Contacto '+(i+1)+':',M+2,y);
+          doc.setFont('helvetica','normal');doc.text(c.nombre+' | '+c.cargo+' | '+c.tel+(c.enc?' ⭐ ENC.SX':''),M+45,y);y+=5;
+        });
+        // firma
+        if(v.sigImg&&y<250){
+          if(y>230){doc.addPage();y=20;}
+          try{doc.addImage(v.sigImg,'PNG',M,y,60,15);y+=18;}catch(e){}
+        }
+      } else {
+        sec([['Objeción',v.objecion||'—'],['Notas',v.notas||'—'],['Razón NC',v.nc_razon||'—']]);
+      }
+      }
+      y+=5;
+      doc.setDrawColor(200,200,200);doc.setLineWidth(0.3);doc.line(M,y,W-M,y);y+=6;
+    });
+
+    // fotos al final agrupadas por visita
+    const visitsConFotos=visits.filter(v=>(v.photos?.local?.length||v.photos?.vehiculo?.length));
+    if(visitsConFotos.length){
+      doc.addPage();let fy=20;
+      doc.setFillColor(26,58,92);doc.rect(0,0,W,14,'F');
+      doc.setTextColor(255,255,255);doc.setFontSize(11);doc.setFont('helvetica','bold');doc.text('FOTOS POR VISITA',M,10);
+      fy=22;
+      visitsConFotos.forEach(v=>{
+        const pics=[...(v.photos?.local||[]),...(v.photos?.vehiculo||[])];
+        if(!pics.length)return;
+        if(fy>250){doc.addPage();fy=15;}
+        doc.setFontSize(9);doc.setFont('helvetica','bold');doc.setTextColor(26,58,92);
+        doc.text((v.nc_obs||'—')+' · '+v.distrito,M,fy);fy+=5;
+        let px=M,py=fy;
+        pics.forEach(p=>{
+          try{doc.addImage(p,'JPEG',px,py,60,48);px+=63;if(px>150){px=M;py+=52;}if(py>250){doc.addPage();py=15;px=M;}}catch(e){}
+        });
+        fy=py+52+4;
+      });
+    }
+
+    // footer todas las páginas
+    const np=doc.getNumberOfPages();
+    for(let i=1;i<=np;i++){doc.setPage(i);doc.setFillColor(192,57,43);doc.rect(0,286,W,11,'F');doc.setTextColor(255,255,255);doc.setFontSize(7);doc.setFont('helvetica','normal');doc.text('SIDEREXPRESS · Canal WhatsApp de SIDERPERU · Trujillo 2026',W/2,292,{align:'center'});doc.text('Pág. '+i+'/'+np,W-M,292,{align:'right'});}
+    doc.save('Reporte_SX_Trujillo_'+hoy.replace(/\//g,'')+'.pdf');
+    if(btn){btn.textContent='✅ PDF descargado';btn.disabled=false;setTimeout(()=>btn.textContent='📄 Descargar reporte del día (PDF)',3000);}
+  }catch(err){console.error(err);if(btn){btn.textContent='❌ Error — intenta de nuevo';btn.disabled=false;}}},300);
+}
+
+// ── EXCEL EXPORT ──
+function genExcel(){
+  if(!visits.length){alert('Sin visitas registradas aún.');return;}
+  // Sheet 1: Prospección
+  const cols=[
+    'Fecha','Hora','Estado','Código','Nombre local','Distrito',
+    'GPS Lat','GPS Lon','Almacén','Categorías','Flota',
+    'Razón sin contacto','Objeción','Notas',
+    'Encargado SX','Tel. Encargado','Horario','Días',
+    'Tiempo entrega','Cobertura','Monto mín. sin flete (S/.)','Costo flete (S/.)'
+  ];
+  const prosp=visits.filter(v=>v.tipo_visita!=='seguimiento');
+  const rows=prosp.map(v=>{
+    const enc=(v.contactos||[]).find(c=>c.enc)||{};
+    const vhStr=Object.values(v.vhs||{}).map(x=>x.name+': '+x.qty).join(' | ')||'';
+    return [
+      v.fecha||'',v.hora||'',
+      (ELBL[v.estado]||v.estado||'').replace(/[👁️💬⏳✅]/g,'').trim(),
+      v.estado==='registrada'?v.codigo||'':'',
+      v.nc_obs||'',v.distrito||'',v.lat||'',v.lon||'',v.alm||'',
+      (v.cats||[]).join(', ')||(v.cat_nd?'No identificado':''),
+      vhStr,v.nc_razon||'',v.objecion||'',v.notas||'',
+      enc.nombre||'',enc.tel||'',v.horario||'',v.dias||'',
+      v.tent||'',v.cobertura||'',v.minflete||'',v.flete||''
+    ];
+  });
+  // Sheet 2: Seguimiento
+  const segCols=['Fecha','Hora','Tipo','Código','Nombre Ferretería','Zona','GPS Lat','GPS Lon',
+    'Estado','Mercado','Volumen','Zona entrega','Otras plataformas',
+    'Sugerencias ferretero→SX','Sugerencias SX→ferretero','Percepción','Notas',
+    'Objeción inactiva','Folleto presentado','Reactivada','Fecha compromiso','Contacto react.'];
+  const segRows=visits.filter(v=>v.tipo_visita==='seguimiento').map(v=>{
+    const ferr=TODAS_FERRETERIAS.find(f=>f.cod===v.seg_cod);
+    return [
+      v.fecha||'',v.hora||'','Seguimiento',v.seg_cod||'',
+      ferr?ferr.nom:v.seg_cod||'',ferr?ferr.ciudad:'',
+      v.lat||'',v.lon||'',v.seg_estado||'',
+      v.mercado||'',v.volumen||'',v.zona_entrega||'',v.otras_plat||'',
+      v.sug_ferretero||'',(v.sug_sx||[]).join('; ')+(v.sug_sx_otra?'; '+v.sug_sx_otra:''),
+      v.percepcion||'',v.notas||'',
+      v.obj_inactiva||''+(v.obj_inactiva_otra?' ('+v.obj_inactiva_otra+')':''),
+      v.folleto_presentado||'',v.reactivado===true?'Sí':'No',
+      v.fecha_react||'',v.contacto_react||''
+    ];
+  });
+  const wb=XLSX.utils.book_new();
+  const ws1=XLSX.utils.aoa_to_sheet([cols,...rows]);
+  ws1['!cols']=[{wch:10},{wch:6},{wch:20},{wch:16},{wch:24},{wch:18},{wch:10},{wch:10},{wch:10},{wch:28},{wch:30},{wch:22},{wch:30},{wch:30},{wch:20},{wch:14},{wch:12},{wch:14},{wch:14},{wch:30},{wch:18},{wch:14}];
+  XLSX.utils.book_append_sheet(wb,ws1,'Prospección SX');
+  if(segRows.length){
+    const ws2=XLSX.utils.aoa_to_sheet([segCols,...segRows]);
+    ws2['!cols']=segCols.map(()=>({wch:20}));
+    XLSX.utils.book_append_sheet(wb,ws2,'Seguimiento SX');
+  }
+  const n=new Date();
+  const fname='BD_SX_'+p2(n.getDate())+p2(n.getMonth()+1)+n.getFullYear()+'.xlsx';
+  XLSX.writeFile(wb,fname);
+}
+
+</script>
+</body>
+</html>
