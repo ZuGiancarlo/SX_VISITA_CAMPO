@@ -1146,7 +1146,8 @@ function finalizeNC(){
   const otra=document.getElementById('nc-otra')?.value;
   rec.nc_razon=sel==='otra'?otra:sel;
   rec.estado='sin-contacto';const{fecha,hora}=stamp();rec.fecha=fecha;rec.hora=hora;
-  visits.push({...rec,photos:{local:[...photos.local],vehiculo:[...photos.vehiculo]}});
+  const v={...rec,photos:{local:[...photos.local],vehiculo:[...photos.vehiculo]}};
+  visits.push(v);postToSheets(v);
   updCount();setStep(4);
 }
 
