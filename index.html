@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>SIDEREXPRESS · Promotora</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://unpkg.com/docx@8.5.0/build/index.js"></script>
 <style>
 :root{
   --red:#C0392B;--red-d:#922b21;--red-l:#fdf0ef;
@@ -209,13 +209,36 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--g100);color:va
 
 <div class="hdr">
   <div class="hdr-logo"><svg viewBox="0 0 24 24" fill="none"><rect x="2" y="6" width="20" height="12" rx="2" fill="#C0392B"/><path d="M6 10h12M6 14h8" stroke="white" stroke-width="1.8" stroke-linecap="round"/></svg></div>
-  <div><h1>SIDEREXPRESS</h1><p>Promotora · Trujillo 2026</p></div>
+  <div><h1>SIDEREXPRESS</h1><p id="hdr-sesion">App Visitas Campo</p></div>
   <div class="hdr-vc" id="hdr-vc" onclick="goRes()">0 visitas</div>
 </div>
 
 <!-- HOME -->
 <div class="scr on" id="scr-home">
   <div class="home">
+    <div class="card" style="margin-bottom:1rem">
+      <div class="card-hdr">👤 Promotor y zona</div>
+      <div class="f">
+        <label>Provincia</label>
+        <div class="seg-est-row" id="prov-btns">
+          <button class="seg-est-btn activa" id="pbtn-Lima" onclick="selectProv('Lima')">🏙️ Lima</button>
+          <button class="seg-est-btn activa" id="pbtn-LaLibertad" onclick="selectProv('La Libertad')">🏙️ La Libertad</button>
+        </div>
+      </div>
+      <div class="f" id="promotor-wrap" style="display:none">
+        <label>Promotor</label>
+        <select id="sel-promotor" onchange="selectPromotor(this.value)">
+          <option value="">— Seleccionar —</option>
+        </select>
+        <div id="promotor-nuevo-wrap" style="display:none;margin-top:.5rem">
+          <div style="display:flex;gap:8px;align-items:center">
+            <input type="text" id="nuevo-promotor-inp" placeholder="Nombre del nuevo promotor..." style="flex:1;padding:9px 11px;border:1.5px solid var(--g200);border-radius:var(--rs);font-size:14px">
+            <button onclick="agregarPromotor()" style="padding:9px 14px;background:var(--blue);color:white;border:none;border-radius:var(--rs);font-weight:700;cursor:pointer;font-size:13px">+ Agregar</button>
+          </div>
+        </div>
+        <div class="fhint" id="sesion-confirm" style="color:var(--green);font-weight:700"></div>
+      </div>
+    </div>
     <div class="vbox">
       <div class="vbox-n" id="vc-n">0</div>
       <div class="vbox-t"><strong>Visitas registradas hoy</strong><span id="vc-d">Aún no has registrado ninguna visita</span></div>
@@ -272,8 +295,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--g100);color:va
       <div class="wa-txt" id="wmsg"></div>
       <button class="btn-copy" id="btn-sup-copy" onclick="cpTxt('wmsg','btn-sup-copy','📋 Copiar mensaje')">📋 Copiar mensaje</button>
     </div>
-    <button class="btn-pdf" onclick="genReportePDF()">📄 Descargar reporte del día (PDF)</button>
-    <button class="btn-pdf" style="background:var(--green);margin-top:.5rem" onclick="genExcel()">📊 Descargar base de datos (Excel)</button>
+    <button class="btn-pdf" onclick="genReporteDocx()">📄 Descargar informe del día (.docx)</button>
   </div>
 </div>
 
@@ -292,6 +314,20 @@ let interesVal=null;
 let segRec={};
 let segStep=0;
 let segPhotos={local:[]};
+
+// ── SESIÓN (provincia + promotor) ──
+let sesion={provincia:'',promotor:''};
+
+const PROMOTORES={
+  'Lima':['Giancarlo'],
+  'La Libertad':['Patricia'],
+};
+// Permite agregar nombres desde UI — se guardan en memoria de sesión
+function getPromotores(prov){return PROMOTORES[prov]||[];}
+function addPromotor(prov,nombre){
+  if(!PROMOTORES[prov]) PROMOTORES[prov]=[];
+  if(nombre&&!PROMOTORES[prov].includes(nombre)) PROMOTORES[prov].push(nombre);
+}
 
 // Estado: ACTIVA | INACTIVA | EN REVISION  — ciudad: Lima | Trujillo
 const TODAS_FERRETERIAS=[
@@ -393,7 +429,61 @@ const SUGERENCIAS_SX=[
   'Mejorar comunicación con el operador SX',
 ];
 
-function chooseTipo(){show('scr-tipo');}
+function chooseTipo(){
+  if(!sesion.provincia||!sesion.promotor){
+    alert('Selecciona provincia y promotor antes de registrar una visita.');return;
+  }
+  show('scr-tipo');
+}
+function selectProv(prov){
+  sesion.provincia=prov;sesion.promotor='';
+  document.querySelectorAll('#prov-btns .seg-est-btn').forEach(b=>{
+    b.classList.remove('sel');b.style.borderColor='var(--g200)';
+    b.style.background='white';b.style.color='var(--g600)';
+  });
+  const btn=document.getElementById('pbtn-'+prov.replace(' ',''));
+  if(btn){btn.classList.add('sel');btn.style.borderColor='var(--blue-m)';btn.style.background='var(--blue-l)';btn.style.color='var(--blue)';}
+  const sel=document.getElementById('sel-promotor');
+  const proms=getPromotores(prov);
+  sel.innerHTML='<option value="">— Seleccionar —</option>'+
+    proms.map(p=>`<option value="${p}">${p}</option>`).join('')+
+    '<option value="__nuevo__">+ Agregar promotor nuevo...</option>';
+  document.getElementById('promotor-wrap').style.display='block';
+  document.getElementById('promotor-nuevo-wrap').style.display='none';
+  document.getElementById('sesion-confirm').textContent='';
+}
+function selectPromotor(val){
+  if(val==='__nuevo__'){
+    document.getElementById('promotor-nuevo-wrap').style.display='block';
+    document.getElementById('nuevo-promotor-inp').focus();
+    sesion.promotor='';
+    document.getElementById('sesion-confirm').textContent='';
+  } else if(val){
+    document.getElementById('promotor-nuevo-wrap').style.display='none';
+    sesion.promotor=val;
+    confirmarSesion();
+  } else {
+    sesion.promotor='';
+    document.getElementById('sesion-confirm').textContent='';
+  }
+}
+function agregarPromotor(){
+  const inp=document.getElementById('nuevo-promotor-inp');
+  const nombre=inp.value.trim();
+  if(!nombre)return;
+  addPromotor(sesion.provincia,nombre);
+  selectProv(sesion.provincia);
+  const sel=document.getElementById('sel-promotor');
+  sel.value=nombre;
+  sesion.promotor=nombre;
+  inp.value='';
+  document.getElementById('promotor-nuevo-wrap').style.display='none';
+  confirmarSesion();
+}
+function confirmarSesion(){
+  document.getElementById('sesion-confirm').textContent='✅ Listo — '+sesion.promotor+' · '+sesion.provincia;
+  document.getElementById('hdr-sesion').textContent=sesion.promotor+' · '+sesion.provincia;
+}
 function startSeguimiento(){
   segRec={};segStep=0;segPhotos={local:[]};
   renderSeg();show('scr-seg');
@@ -730,6 +820,8 @@ function finalizeSegVisit(){
   segRec.hora=p2(n.getHours())+':'+p2(n.getMinutes());
   segRec.tipo_visita='seguimiento';
   segRec.photos={local:[...segPhotos.local]};
+  segRec.provincia=sesion.provincia;
+  segRec.promotor=sesion.promotor;
   const v={...segRec};
   visits.push(v);
   postToSheets(v);
@@ -1146,6 +1238,7 @@ function finalizeNC(){
   const otra=document.getElementById('nc-otra')?.value;
   rec.nc_razon=sel==='otra'?otra:sel;
   rec.estado='sin-contacto';const{fecha,hora}=stamp();rec.fecha=fecha;rec.hora=hora;
+  rec.provincia=sesion.provincia;rec.promotor=sesion.promotor;
   const v={...rec,photos:{local:[...photos.local],vehiculo:[...photos.vehiculo]}};
   visits.push(v);postToSheets(v);
   updCount();setStep(4);
@@ -1213,12 +1306,14 @@ function clrSig(){const c=document.getElementById('sigc');sigCtx.clearRect(0,0,c
 function stamp(){const n=new Date();return{fecha:p2(n.getDate())+'/'+p2(n.getMonth()+1)+'/'+n.getFullYear(),hora:p2(n.getHours())+':'+p2(n.getMinutes())};}
 function finalizeVisited(){
   rec.estado='visitada';const{fecha,hora}=stamp();rec.fecha=fecha;rec.hora=hora;
+  rec.provincia=sesion.provincia;rec.promotor=sesion.promotor;
   const v={...rec,photos:{local:[...photos.local],vehiculo:[...photos.vehiculo]}};
   visits.push(v);postToSheets(v);
   updCount();setStep(4);
 }
 function finalizeNotApt(){
   rec.estado='prospecto-no-apto';const{fecha,hora}=stamp();rec.fecha=fecha;rec.hora=hora;
+  rec.provincia=sesion.provincia;rec.promotor=sesion.promotor;
   const v={...rec,photos:{local:[...photos.local],vehiculo:[...photos.vehiculo]}};
   visits.push(v);postToSheets(v);
   updCount();setStep(4);
@@ -1226,6 +1321,7 @@ function finalizeNotApt(){
 function finalizarReg(){
   const{fecha,hora}=stamp();
   rec.estado='registrada';rec.fecha=fecha;rec.hora=hora;
+  rec.provincia=sesion.provincia;rec.promotor=sesion.promotor;
   rec.codigo='SX-'+(rec.distrito||'LIM').substring(0,3).toUpperCase()+'-'+Date.now().toString().slice(-4);
   rec.grupo_wa=undefined;
   visits.push({...rec,photos:{local:[...photos.local],vehiculo:[...photos.vehiculo]}});
@@ -1290,194 +1386,349 @@ function buildRes(){
   const objs=vis.map(v=>v.objecion).filter(Boolean);
   const top=objs.length?objs.sort((a,b)=>objs.filter(x=>x===b).length-objs.filter(x=>x===a).length)[0]:'Ninguna';
   document.getElementById('wmsg').textContent=
-`📊 *REPORTE VISITAS DEL DÍA*\nPromotora: [nombre]\nFecha: ${p2(n.getDate())}/${p2(n.getMonth()+1)}/${n.getFullYear()}\n\n*PROSPECCIÓN:*\n✅ Registradas: ${regs.length}\n💬 Visitadas / no interesadas: ${vis.length}\n⏳ Prospectos no aptos: ${noApto.length}\n👁️ Sin contacto (volver): ${sc.length}\n🚫 Objeción más común: ${top}\n\n*SEGUIMIENTO:*\n📌 Activas visitadas: ${segAct.length}\n⏸ Inactivas visitadas: ${segInact.length}\n🔄 Reactivadas hoy: ${segReact.length}\n\n*REGISTROS NUEVOS:*\n${regs.map(r=>'  • '+(r.nc_obs||'—')+' | '+r.distrito+' | '+r.codigo).join('\n')||'  Ninguno'}\n\n*REACTIVACIONES:*\n${segReact.map(v=>{const f=TODAS_FERRETERIAS.find(x=>x.cod===v.seg_cod);return '  • '+(f?f.nom:v.seg_cod||'—');}).join('\n')||'  Ninguna'}\n\n*VOLVER A VISITAR (sin contacto):*\n${sc.map(v=>'  • '+(v.nc_obs||'—')+' | '+v.distrito+' | '+(v.nc_razon||'—')).join('\n')||'  Ninguna'}\n\n_App SIDEREXPRESS Promotora Trujillo_`;
+`📊 *REPORTE VISITAS DEL DÍA*\nPromotor: ${sesion.promotor||'[nombre]'}\nZona: ${sesion.provincia||'[zona]'}\nFecha: ${p2(n.getDate())}/${p2(n.getMonth()+1)}/${n.getFullYear()}\n\n*PROSPECCIÓN:*\n✅ Registradas: ${regs.length}\n💬 Visitadas / no interesadas: ${vis.length}\n⏳ Prospectos no aptos: ${noApto.length}\n👁️ Sin contacto (volver): ${sc.length}\n🚫 Objeción más común: ${top}\n\n*SEGUIMIENTO:*\n📌 Activas visitadas: ${segAct.length}\n⏸ Inactivas visitadas: ${segInact.length}\n🔄 Reactivadas hoy: ${segReact.length}\n\n*REGISTROS NUEVOS:*\n${regs.map(r=>'  • '+(r.nc_obs||'—')+' | '+r.distrito+' | '+r.codigo).join('\n')||'  Ninguno'}\n\n*REACTIVACIONES:*\n${segReact.map(v=>{const f=TODAS_FERRETERIAS.find(x=>x.cod===v.seg_cod);return '  • '+(f?f.nom:v.seg_cod||'—');}).join('\n')||'  Ninguna'}\n\n*VOLVER A VISITAR (sin contacto):*\n${sc.map(v=>'  • '+(v.nc_obs||'—')+' | '+v.distrito+' | '+(v.nc_razon||'—')).join('\n')||'  Ninguna'}\n\n_App SIDEREXPRESS_`;
 }
-function dlRes(){buildRes();const txt=document.getElementById('wmsg').textContent;const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([txt],{type:'text/plain;charset=utf-8'}));a.download='Resumen_SX_'+new Date().toISOString().slice(0,10)+'.txt';a.click();}
+function dlRes(){buildRes();const txt=document.getElementById('wmsg').textContent;const a=window.document.createElement('a');a.href=URL.createObjectURL(new Blob([txt],{type:'text/plain;charset=utf-8'}));a.download='Resumen_SX_'+new Date().toISOString().slice(0,10)+'.txt';a.click();}
 
-// ── PDF REPORTE COMPLETO DEL DÍA ──
-function genReportePDF(){
+// ── DOCX INFORME SALIDA A CAMPO ──
+async function genReporteDocx(){
   if(!visits.length){alert('Sin visitas registradas aún.');return;}
-  const btn=document.querySelector('.btn-pdf');if(btn){btn.textContent='⏳ Generando PDF...';btn.disabled=true;}
-  setTimeout(()=>{try{
-    const{jsPDF}=window.jspdf;const doc=new jsPDF({unit:'mm',format:'a4'});const W=210,M=15;
-    const n=new Date();const hoy=p2(n.getDate())+'/'+p2(n.getMonth()+1)+'/'+n.getFullYear();
-    // portada
-    doc.setFillColor(26,58,92);doc.rect(0,0,W,40,'F');
-    doc.setTextColor(255,255,255);doc.setFontSize(18);doc.setFont('helvetica','bold');doc.text('SIDEREXPRESS',M,18);
-    doc.setFontSize(11);doc.setFont('helvetica','normal');doc.text('Reporte de visitas del día · '+hoy,M,27);
-    doc.setFontSize(9);doc.text('Total: '+visits.length+' visitas  |  Registradas: '+visits.filter(v=>v.estado==='registrada').length,M,34);
-    let y=52;
+  const btn=document.querySelector('.btn-pdf');
+  if(btn){btn.textContent='⏳ Generando informe...';btn.disabled=true;}
+  try{
+    const {
+      Document,Packer,Paragraph,TextRun,Table,TableRow,TableCell,
+      ImageRun,AlignmentType,BorderStyle,WidthType,ShadingType,
+      VerticalAlign,HeadingLevel,PageNumber,LevelFormat
+    }=docx;
 
-    visits.forEach((v,idx)=>{
-      if(y>240){doc.addPage();y=20;}
-      const isSeg=v.tipo_visita==='seguimiento';
-      // cabecera visita
-      const isReg=v.estado==='registrada';
-      let clr;
-      if(isSeg){clr=v.seg_estado==='activa'?[26,122,60]:v.reactivado?[26,122,60]:[183,119,13];}
-      else{clr=isReg?[26,122,60]:v.estado==='visitada'?[183,119,13]:v.estado==='prospecto-no-apto'?[192,57,43]:[100,100,100];}
-      doc.setFillColor(...clr);doc.rect(M,y,W-M*2,9,'F');
-      doc.setTextColor(255,255,255);doc.setFontSize(9);doc.setFont('helvetica','bold');
-      if(isSeg){
-        const ferr=TODAS_FERRETERIAS.find(f=>f.cod===v.seg_cod);
-        const nomF=ferr?ferr.nom:v.seg_cod||'—';
-        const lbl=v.reactivado?'REACTIVADA':v.seg_estado==='activa'?'ACTIVA':'INACTIVA';
-        doc.text(`${idx+1}. [SEGUIMIENTO] ${nomF}  ·  ${lbl}  ·  ${v.hora}`,M+2,y+6);
-      } else {
-        doc.text(`${idx+1}. ${v.nc_obs||'—'}  ·  ${v.distrito||'—'}  ·  ${ELBL[v.estado]||v.estado}  ·  ${v.hora}`,M+2,y+6);
-        if(isReg) doc.text('CÓDIGO: '+v.codigo,W-M-2,y+6,{align:'right'});
-      }
-      y+=12;
-      // datos
-      const sec=(rows)=>{
-        doc.setFont('helvetica','normal');doc.setFontSize(8.5);doc.setTextColor(50,50,50);
-        rows.forEach(r=>{
-          if(!r[1]&&r[1]!==0)return;
-          if(y>272){doc.addPage();y=20;}
-          doc.setFont('helvetica','bold');doc.text(r[0]+':',M+2,y);
-          doc.setFont('helvetica','normal');const ln=doc.splitTextToSize(String(r[1]),125);
-          doc.text(ln,M+45,y);y+=Math.max(5,ln.length*4.5);
-        });
-      };
-      if(isSeg){
-        if(v.seg_estado==='activa'){
-          sec([
-            ['GPS',v.lat?v.lat+', '+v.lon:'No capturado'],
-            ['Mercado',v.mercado||'—'],['Volumen',v.volumen||'—'],
-            ['Zona entrega',v.zona_entrega||'—'],['Otras plat.',v.otras_plat||'—'],
-            ['Sug. ferretero',v.sug_ferretero||'—'],
-            ['Sug. SX entregadas',[(v.sug_sx||[]).join(', '),v.sug_sx_otra].filter(Boolean).join('; ')||'—'],
-            ['Percepción',v.percepcion||'—'],['Notas',v.notas||'—'],
-          ]);
-        } else {
-          sec([
-            ['GPS',v.lat?v.lat+', '+v.lon:'No capturado'],
-            ['Objeción',v.obj_inactiva||'—'+(v.obj_inactiva_otra?' ('+v.obj_inactiva_otra+')':'')],
-            ['Folleto presentado',v.folleto_presentado==='si'?'Sí':'No'],
-            ['Reactivada',v.reactivado===true?'Sí':'No'],
-            ...(v.reactivado===true?[['Fecha compromiso',v.fecha_react||'—'],['Contacto react.',v.contacto_react||'—']]:[] ),
-            ['Notas',v.notas||'—'],
-          ]);
-        }
-      } else {
-      const vhStr=Object.values(v.vhs||{}).map(x=>`${x.ico} ${x.name}: ${x.qty}`).join(' | ')||'—';
-      sec([
-        ['GPS',v.lat?v.lat+', '+v.lon:'No capturado'],
-        ['Almacén',v.alm||'—'],
-        ['Categorías',(v.cats||[]).join(', ')||(v.cat_nd?'No identificado':'—')],
-        ['Flota',vhStr]
-      ]);
-      if(isReg){
-        sec([
-          ['Horario',v.horario||'—'],['Días',v.dias||'—'],
-          ['Entrega',v.tent||'—'],['Cobertura',v.cobertura||'—'],
-          ['Mín. sin flete',v.minflete?'S/. '+v.minflete:'—'],
-          ['Flete si menor',v.flete?'S/. '+v.flete:'—'],
-        ]);
-        (v.contactos||[]).forEach((c,i)=>{
-          if(y>272){doc.addPage();y=20;}
-          doc.setFont('helvetica','bold');doc.setFontSize(8.5);doc.text('Contacto '+(i+1)+':',M+2,y);
-          doc.setFont('helvetica','normal');doc.text(c.nombre+' | '+c.cargo+' | '+c.tel+(c.enc?' ⭐ ENC.SX':''),M+45,y);y+=5;
-        });
-        // firma
-        if(v.sigImg&&y<250){
-          if(y>230){doc.addPage();y=20;}
-          try{doc.addImage(v.sigImg,'PNG',M,y,60,15);y+=18;}catch(e){}
-        }
-      } else {
-        sec([['Objeción',v.objecion||'—'],['Notas',v.notas||'—'],['Razón NC',v.nc_razon||'—']]);
-      }
-      }
-      y+=5;
-      doc.setDrawColor(200,200,200);doc.setLineWidth(0.3);doc.line(M,y,W-M,y);y+=6;
+    const n=new Date();
+    const hoy=p2(n.getDate())+'/'+p2(n.getMonth()+1)+'/'+n.getFullYear();
+    const hora=p2(n.getHours())+':'+p2(n.getMinutes());
+    const BLUE='185FA5',BLUE_L='D6E8F7',GRAY='F5F5F5',DARK='1A1A2E';
+    const RED='C0392B',GREEN='1A7A3C',AMBER='B7770D';
+    const W=9360; // US Letter 1" margins
+    const brd=(c='CCCCCC')=>({style:BorderStyle.SINGLE,size:1,color:c});
+    const brds=(c)=>({top:brd(c),bottom:brd(c),left:brd(c),right:brd(c)});
+    const noBrd={style:BorderStyle.NONE,size:0,color:'FFFFFF'};
+    const noBrds={top:noBrd,bottom:noBrd,left:noBrd,right:noBrd};
+
+    // helpers
+    const txt=(t,opts={})=>new TextRun({text:String(t||''),font:'Arial',size:20,...opts});
+    const par=(children,opts={})=>new Paragraph({spacing:{before:60,after:60},children,...opts});
+    const cell=(children,w,fill='FFFFFF',brdObj=null)=>new TableCell({
+      borders:brdObj||brds(),
+      width:{size:w,type:WidthType.DXA},
+      shading:{fill,type:ShadingType.CLEAR},
+      margins:{top:80,bottom:80,left:120,right:120},
+      children:Array.isArray(children)?children:[children]
     });
 
-    // fotos al final agrupadas por visita
-    const visitsConFotos=visits.filter(v=>(v.photos?.local?.length||v.photos?.vehiculo?.length));
-    if(visitsConFotos.length){
-      doc.addPage();let fy=20;
-      doc.setFillColor(26,58,92);doc.rect(0,0,W,14,'F');
-      doc.setTextColor(255,255,255);doc.setFontSize(11);doc.setFont('helvetica','bold');doc.text('FOTOS POR VISITA',M,10);
-      fy=22;
-      visitsConFotos.forEach(v=>{
-        const pics=[...(v.photos?.local||[]),...(v.photos?.vehiculo||[])];
-        if(!pics.length)return;
-        if(fy>250){doc.addPage();fy=15;}
-        doc.setFontSize(9);doc.setFont('helvetica','bold');doc.setTextColor(26,58,92);
-        doc.text((v.nc_obs||'—')+' · '+v.distrito,M,fy);fy+=5;
-        let px=M,py=fy;
-        pics.forEach(p=>{
-          try{doc.addImage(p,'JPEG',px,py,60,48);px+=63;if(px>150){px=M;py+=52;}if(py>250){doc.addPage();py=15;px=M;}}catch(e){}
-        });
-        fy=py+52+4;
+    // ── HEADER TABLE (formato Siderperu) ──
+    const headerTable=new Table({
+      width:{size:W,type:WidthType.DXA},
+      columnWidths:[2200,3200,2000,1960],
+      rows:[
+        new TableRow({children:[
+          cell([par([txt('SIDEREXPRESS',{bold:true,size:26,color:BLUE})])],2200,BLUE_L),
+          cell([
+            par([txt('INFORME SALIDA A CAMPO',{bold:true,size:24,color:DARK})]),
+            par([txt('Levantamiento de información',{size:18,color:'666666'})])
+          ],3200,'FFFFFF'),
+          cell([par([txt('Fecha: ',{bold:true}),txt(hoy)])],2000,'FFFFFF'),
+          cell([par([txt('Área: ',{bold:true}),txt('Marketing y Nuevos Negocios',{size:18})])],1960,'FFFFFF'),
+        ]}),
+        new TableRow({children:[
+          new TableCell({
+            borders:brds(),
+            width:{size:W,type:WidthType.DXA},
+            columnSpan:4,
+            shading:{fill:BLUE,type:ShadingType.CLEAR},
+            margins:{top:80,bottom:80,left:120,right:120},
+            children:[new Paragraph({alignment:AlignmentType.CENTER,children:[
+              txt('REPORTE DE VISITAS A CAMPO — '+
+                (visits[0]?.seg_ciudad||visits[0]?.distrito?.split('_')[0]||'CAMPO').toUpperCase(),
+                {bold:true,size:22,color:'FFFFFF'})
+            ]})]
+          })
+        ]})
+      ]
+    });
+
+    // ── RESUMEN EJECUTIVO ──
+    const prosp=visits.filter(v=>v.tipo_visita!=='seguimiento');
+    const segs=visits.filter(v=>v.tipo_visita==='seguimiento');
+    const regs=prosp.filter(v=>v.estado==='registrada');
+    const visitadas=prosp.filter(v=>v.estado==='visitada');
+    const sc=prosp.filter(v=>v.estado==='sin-contacto');
+    const segAct=segs.filter(v=>v.seg_estado==='activa');
+    const segInact=segs.filter(v=>v.seg_estado==='inactiva');
+    const react=segs.filter(v=>v.reactivado===true);
+
+    const resumenTable=new Table({
+      width:{size:W,type:WidthType.DXA},
+      columnWidths:[4680,4680],
+      rows:[
+        new TableRow({children:[
+          cell([par([txt('PROSPECCIÓN',{bold:true,size:18,color:BLUE})])],4680,BLUE_L),
+          cell([par([txt('SEGUIMIENTO',{bold:true,size:18,color:BLUE})])],4680,BLUE_L),
+        ]}),
+        new TableRow({children:[
+          cell([
+            par([txt('✅ Registradas: ',{bold:true}),txt(regs.length)]),
+            par([txt('💬 Visitadas/no interesadas: ',{bold:true}),txt(visitadas.length)]),
+            par([txt('👁 Sin contacto: ',{bold:true}),txt(sc.length)]),
+          ],4680,'FFFFFF'),
+          cell([
+            par([txt('📌 Activas visitadas: ',{bold:true}),txt(segAct.length)]),
+            par([txt('⏸ Inactivas visitadas: ',{bold:true}),txt(segInact.length)]),
+            par([txt('🔄 Reactivadas: ',{bold:true}),txt(react.length)]),
+          ],4680,'FFFFFF'),
+        ]})
+      ]
+    });
+
+    // ── SECCIÓN POR VISITA ──
+    function secHdr(label,color){
+      return new Table({
+        width:{size:W,type:WidthType.DXA},columnWidths:[W],
+        rows:[new TableRow({children:[
+          cell([new Paragraph({children:[txt(label,{bold:true,size:20,color:'FFFFFF'})]})],W,color)
+        ]})]
+      });
+    }
+    function dataRow(label,value,shade){
+      return new TableRow({children:[
+        cell([par([txt(label,{bold:true,size:18})])],2800,shade?GRAY:'FFFFFF'),
+        cell([par([txt(value||'—',{size:18})])],6560,shade?GRAY:'FFFFFF'),
+      ]});
+    }
+    function dataTable(rows){
+      return new Table({
+        width:{size:W,type:WidthType.DXA},columnWidths:[2800,6560],
+        rows:rows.map((r,i)=>dataRow(r[0],r[1],i%2===1))
       });
     }
 
-    // footer todas las páginas
-    const np=doc.getNumberOfPages();
-    for(let i=1;i<=np;i++){doc.setPage(i);doc.setFillColor(192,57,43);doc.rect(0,286,W,11,'F');doc.setTextColor(255,255,255);doc.setFontSize(7);doc.setFont('helvetica','normal');doc.text('SIDEREXPRESS · Canal WhatsApp de SIDERPERU · Trujillo 2026',W/2,292,{align:'center'});doc.text('Pág. '+i+'/'+np,W-M,292,{align:'right'});}
-    doc.save('Reporte_SX_Trujillo_'+hoy.replace(/\//g,'')+'.pdf');
-    if(btn){btn.textContent='✅ PDF descargado';btn.disabled=false;setTimeout(()=>btn.textContent='📄 Descargar reporte del día (PDF)',3000);}
-  }catch(err){console.error(err);if(btn){btn.textContent='❌ Error — intenta de nuevo';btn.disabled=false;}}},300);
-}
+    // Convert base64 image to ArrayBuffer
+    async function b64toAB(b64){
+      const res=await fetch(b64);
+      return await res.arrayBuffer();
+    }
 
-// ── EXCEL EXPORT ──
-function genExcel(){
-  if(!visits.length){alert('Sin visitas registradas aún.');return;}
-  // Sheet 1: Prospección
-  const cols=[
-    'Fecha','Hora','Estado','Código','Nombre local','Distrito',
-    'GPS Lat','GPS Lon','Almacén','Categorías','Flota',
-    'Razón sin contacto','Objeción','Notas',
-    'Encargado SX','Tel. Encargado','Horario','Días',
-    'Tiempo entrega','Cobertura','Monto mín. sin flete (S/.)','Costo flete (S/.)'
-  ];
-  const prosp=visits.filter(v=>v.tipo_visita!=='seguimiento');
-  const rows=prosp.map(v=>{
-    const enc=(v.contactos||[]).find(c=>c.enc)||{};
-    const vhStr=Object.values(v.vhs||{}).map(x=>x.name+': '+x.qty).join(' | ')||'';
-    return [
-      v.fecha||'',v.hora||'',
-      (ELBL[v.estado]||v.estado||'').replace(/[👁️💬⏳✅]/g,'').trim(),
-      v.estado==='registrada'?v.codigo||'':'',
-      v.nc_obs||'',v.distrito||'',v.lat||'',v.lon||'',v.alm||'',
-      (v.cats||[]).join(', ')||(v.cat_nd?'No identificado':''),
-      vhStr,v.nc_razon||'',v.objecion||'',v.notas||'',
-      enc.nombre||'',enc.tel||'',v.horario||'',v.dias||'',
-      v.tent||'',v.cobertura||'',v.minflete||'',v.flete||''
-    ];
-  });
-  // Sheet 2: Seguimiento
-  const segCols=['Fecha','Hora','Tipo','Código','Nombre Ferretería','Zona','GPS Lat','GPS Lon',
-    'Estado','Mercado','Volumen','Zona entrega','Otras plataformas',
-    'Sugerencias ferretero→SX','Sugerencias SX→ferretero','Percepción','Notas',
-    'Objeción inactiva','Folleto presentado','Reactivada','Fecha compromiso','Contacto react.'];
-  const segRows=visits.filter(v=>v.tipo_visita==='seguimiento').map(v=>{
-    const ferr=TODAS_FERRETERIAS.find(f=>f.cod===v.seg_cod);
-    return [
-      v.fecha||'',v.hora||'','Seguimiento',v.seg_cod||'',
-      ferr?ferr.nom:v.seg_cod||'',ferr?ferr.ciudad:'',
-      v.lat||'',v.lon||'',v.seg_estado||'',
-      v.mercado||'',v.volumen||'',v.zona_entrega||'',v.otras_plat||'',
-      v.sug_ferretero||'',(v.sug_sx||[]).join('; ')+(v.sug_sx_otra?'; '+v.sug_sx_otra:''),
-      v.percepcion||'',v.notas||'',
-      v.obj_inactiva||''+(v.obj_inactiva_otra?' ('+v.obj_inactiva_otra+')':''),
-      v.folleto_presentado||'',v.reactivado===true?'Sí':'No',
-      v.fecha_react||'',v.contacto_react||''
-    ];
-  });
-  const wb=XLSX.utils.book_new();
-  const ws1=XLSX.utils.aoa_to_sheet([cols,...rows]);
-  ws1['!cols']=[{wch:10},{wch:6},{wch:20},{wch:16},{wch:24},{wch:18},{wch:10},{wch:10},{wch:10},{wch:28},{wch:30},{wch:22},{wch:30},{wch:30},{wch:20},{wch:14},{wch:12},{wch:14},{wch:14},{wch:30},{wch:18},{wch:14}];
-  XLSX.utils.book_append_sheet(wb,ws1,'Prospección SX');
-  if(segRows.length){
-    const ws2=XLSX.utils.aoa_to_sheet([segCols,...segRows]);
-    ws2['!cols']=segCols.map(()=>({wch:20}));
-    XLSX.utils.book_append_sheet(wb,ws2,'Seguimiento SX');
+    // Build image runs from photos
+    async function photoRuns(photos){
+      const runs=[];
+      const all=[...(photos?.local||[]),...(photos?.vehiculo||[])];
+      for(const p of all){
+        try{
+          const ab=await b64toAB(p);
+          runs.push(new ImageRun({
+            data:ab,transformation:{width:200,height:160},
+            type:'jpeg'
+          }));
+          runs.push(new TextRun({text:'   '}));
+        }catch(e){}
+      }
+      return runs;
+    }
+
+    const children=[];
+
+    // Header
+    children.push(headerTable);
+    children.push(new Paragraph({spacing:{before:200,after:80},children:[txt('1. Resumen del día',{bold:true,size:24,color:BLUE})]}));
+    children.push(resumenTable);
+
+    // Objetivo
+    children.push(new Paragraph({spacing:{before:200,after:80},children:[txt('2. Objetivo',{bold:true,size:24,color:BLUE})]}));
+    children.push(par([txt('Visitas de campo para prospección de nuevas ferreterías y seguimiento a la red activa e inactiva de SIDEREXPRESS.')]));
+
+    // Participantes
+    children.push(new Paragraph({spacing:{before:200,after:80},children:[txt('3. Participantes',{bold:true,size:24,color:BLUE})]}));
+    children.push(par([txt('Promotor/a de campo SIDEREXPRESS')]));
+
+    // Lugares visitados
+    children.push(new Paragraph({spacing:{before:200,after:80},children:[txt('4. Lugares visitados',{bold:true,size:24,color:BLUE})]}));
+    const lugaresTable=new Table({
+      width:{size:W,type:WidthType.DXA},columnWidths:[400,2600,2000,1680,2680],
+      rows:[
+        new TableRow({children:[
+          cell([par([txt('#',{bold:true,size:18,color:'FFFFFF'})])],400,BLUE),
+          cell([par([txt('Nombre',{bold:true,size:18,color:'FFFFFF'})])],2600,BLUE),
+          cell([par([txt('Distrito/Ciudad',{bold:true,size:18,color:'FFFFFF'})])],2000,BLUE),
+          cell([par([txt('Tipo',{bold:true,size:18,color:'FFFFFF'})])],1680,BLUE),
+          cell([par([txt('Resultado',{bold:true,size:18,color:'FFFFFF'})])],2680,BLUE),
+        ]}),
+        ...visits.map((v,i)=>{
+          const isSeg=v.tipo_visita==='seguimiento';
+          const ferr=isSeg?TODAS_FERRETERIAS.find(f=>f.cod===v.seg_cod):null;
+          const nom=isSeg?(ferr?ferr.nom:v.seg_cod):v.nc_obs||'—';
+          const lugar=isSeg?(ferr?ferr.ciudad:'—'):v.distrito||'—';
+          const tipo=isSeg?'Seguimiento':'Prospección';
+          const res=isSeg?(v.reactivado?'Reactivada':v.seg_estado==='activa'?'Activa visitada':'Inactiva visitada'):(ELBL[v.estado]||v.estado||'—');
+          const shade=i%2===1;
+          return new TableRow({children:[
+            cell([par([txt(String(i+1),{size:18})])],400,shade?GRAY:'FFFFFF'),
+            cell([par([txt(nom,{size:18})])],2600,shade?GRAY:'FFFFFF'),
+            cell([par([txt(lugar,{size:18})])],2000,shade?GRAY:'FFFFFF'),
+            cell([par([txt(tipo,{size:18})])],1680,shade?GRAY:'FFFFFF'),
+            cell([par([txt(res,{size:18})])],2680,shade?GRAY:'FFFFFF'),
+          ]});
+        })
+      ]
+    });
+    children.push(lugaresTable);
+
+    // Hallazgos por visita
+    children.push(new Paragraph({spacing:{before:200,after:80},children:[txt('5. Hallazgos por visita',{bold:true,size:24,color:BLUE})]}));
+
+    for(let i=0;i<visits.length;i++){
+      const v=visits[i];
+      const isSeg=v.tipo_visita==='seguimiento';
+      const ferr=isSeg?TODAS_FERRETERIAS.find(f=>f.cod===v.seg_cod):null;
+      const nom=isSeg?(ferr?ferr.nom:v.seg_cod):v.nc_obs||'—';
+      const clr=isSeg?(v.reactivado?GREEN:v.seg_estado==='activa'?GREEN:AMBER):
+        v.estado==='registrada'?GREEN:v.estado==='visitada'?AMBER:
+        v.estado==='prospecto-no-apto'?RED:'888888';
+
+      children.push(new Paragraph({spacing:{before:160,after:60},children:[
+        txt(`${i+1}. ${nom}  ·  ${v.fecha||hoy}  ${v.hora||hora}`,{bold:true,size:22,color:clr})
+      ]}));
+
+      if(isSeg){
+        const rows=v.seg_estado==='activa'?[
+          ['Ciudad',v.seg_ciudad||'—'],
+          ['GPS',v.lat?v.lat+', '+v.lon:'No capturado'],
+          ['NPS',v.nps!==undefined&&v.nps!==null?v.nps+'/10':'—'],
+          ['Percepción',v.percepcion||'—'],
+          ['Comentarios del mercado',v.mercado_notas||'—'],
+          ['Comentarios sobre SX',v.sx_notas||'—'],
+          ['Sugerencias SX → ferretero',v.sug_sx_notas||'—'],
+        ]:[
+          ['Ciudad',v.seg_ciudad||'—'],
+          ['GPS',v.lat?v.lat+', '+v.lon:'No capturado'],
+          ['Objeción principal',v.obj_inactiva||'—'],
+          ['Folleto presentado',v.folleto_presentado==='si'?'Sí':'No'],
+          ['¿Se reactivó?',v.reactivado===true?'Sí':'No'],
+          ...(v.reactivado===true?[
+            ['Fecha compromiso',v.fecha_react||'—'],
+            ['Contacto reactivación',v.contacto_react||'—']
+          ]:[]),
+          ['Notas',v.notas||'—'],
+        ];
+        children.push(dataTable(rows));
+      } else {
+        const enc=(v.contactos||[]).find(c=>c.enc)||{};
+        const vhStr=Object.values(v.vhs||{}).map(x=>x.ico+' '+x.name+': '+x.qty).join(' | ')||'—';
+        const baseRows=[
+          ['GPS',v.lat?v.lat+', '+v.lon:'No capturado'],
+          ['Almacén',v.alm||'—'],
+          ['Categorías',(v.cats||[]).join(', ')||(v.cat_nd?'No identificado':'—')],
+          ['Flota',vhStr],
+        ];
+        const regRows=v.estado==='registrada'?[
+          ['Código',v.codigo||'—'],
+          ['Horario',v.horario||'—'],
+          ['Tiempo de entrega',v.tent||'—'],
+          ['Cobertura automática',v.cobertura||'—'],
+          ['Mínimo sin flete','S/. '+(v.minflete||'—')],
+          ['Costo flete','S/. '+(v.flete||'—')],
+          ['Encargado SX',enc.nombre||'—'],
+          ['Tel. encargado',enc.tel||'—'],
+          ['Grupo WA creado',v.grupo_wa===true?'Sí':v.grupo_wa===false?'Pendiente':'—'],
+        ]:v.estado==='visitada'||v.estado==='prospecto-no-apto'?[
+          ['Objeción',v.objecion||'—'],
+          ['Notas',v.notas||'—'],
+        ]:[
+          ['Razón sin contacto',v.nc_razon||'—'],
+        ];
+        children.push(dataTable([...baseRows,...regRows]));
+      }
+
+      // Fotos de esta visita
+      const pics=[...(v.photos?.local||[]),...(v.photos?.vehiculo||[])];
+      if(pics.length){
+        children.push(new Paragraph({spacing:{before:100,after:60},children:[txt('Fotos:',{bold:true,size:18,color:'666666'})]}));
+        const imgRuns=await photoRuns(v.photos);
+        if(imgRuns.length){
+          children.push(new Paragraph({spacing:{before:60,after:60},children:imgRuns}));
+        }
+      }
+    }
+
+    // Plan de acción
+    children.push(new Paragraph({spacing:{before:200,after:80},children:[txt('6. Plan de acción',{bold:true,size:24,color:BLUE})]}));
+    const planRows=[];
+    // Registradas → activar en SX
+    regs.forEach(v=>{
+      planRows.push(new TableRow({children:[
+        cell([par([txt('Activación',{bold:true,size:18,color:GREEN})])],2000,GRAY),
+        cell([par([txt(v.nc_obs||'—',{size:18})])],3000,'FFFFFF'),
+        cell([par([txt('Agregar a grupo WA. Enviar primer formulario de precios.',{size:18})])],4360,'FFFFFF'),
+      ]}));
+    });
+    // Sin contacto → volver a visitar
+    sc.forEach(v=>{
+      planRows.push(new TableRow({children:[
+        cell([par([txt('Revisita',{bold:true,size:18,color:AMBER})])],2000,GRAY),
+        cell([par([txt(v.nc_obs||'—',{size:18})])],3000,'FFFFFF'),
+        cell([par([txt('Razón: '+(v.nc_razon||'—')+'. Programar nueva visita.',{size:18})])],4360,'FFFFFF'),
+      ]}));
+    });
+    // Reactivadas
+    react.forEach(v=>{
+      const ferr=TODAS_FERRETERIAS.find(f=>f.cod===v.seg_cod);
+      planRows.push(new TableRow({children:[
+        cell([par([txt('Reactivación',{bold:true,size:18,color:BLUE})])],2000,GRAY),
+        cell([par([txt(ferr?ferr.nom:v.seg_cod||'—',{size:18})])],3000,'FFFFFF'),
+        cell([par([txt('Confirmar envío de precios: '+(v.fecha_react||'—'),{size:18})])],4360,'FFFFFF'),
+      ]}));
+    });
+    if(planRows.length){
+      children.push(new Table({
+        width:{size:W,type:WidthType.DXA},columnWidths:[2000,3000,4360],
+        rows:[
+          new TableRow({children:[
+            cell([par([txt('Acción',{bold:true,size:18,color:'FFFFFF'})])],2000,BLUE),
+            cell([par([txt('Ferretería',{bold:true,size:18,color:'FFFFFF'})])],3000,BLUE),
+            cell([par([txt('Detalle',{bold:true,size:18,color:'FFFFFF'})])],4360,BLUE),
+          ]}),
+          ...planRows
+        ]
+      }));
+    } else {
+      children.push(par([txt('Sin acciones pendientes identificadas.')]));
+    }
+
+    // Footer note
+    children.push(new Paragraph({
+      spacing:{before:400,after:0},
+      border:{top:{style:BorderStyle.SINGLE,size:4,color:BLUE,space:4}},
+      children:[txt('Este documento es propiedad de Gerdau – Siderperu. Contenido interno.',{size:16,color:'888888',italics:true})]
+    }));
+
+    // Build document
+    const wxDoc=new Document({
+      styles:{default:{document:{run:{font:'Arial',size:20}}}},
+      sections:[{
+        properties:{page:{size:{width:12240,height:15840},margin:{top:1080,right:1080,bottom:1080,left:1080}}},
+        children
+      }]
+    });
+
+    const blob=await Packer.toBlob(wxDoc);
+    const url=URL.createObjectURL(blob);
+    const a=window.document.createElement('a');
+    a.href=url;a.download='Informe_SX_'+hoy.replace(/\//g,'')+'.docx';
+    window.document.body.appendChild(a);a.click();
+    window.document.body.removeChild(a);URL.revokeObjectURL(url);
+    if(btn){btn.textContent='✅ Informe descargado';btn.disabled=false;
+      setTimeout(()=>btn.textContent='📄 Descargar informe del día (.docx)',3000);}
+  }catch(err){
+    console.error(err);
+    if(btn){btn.textContent='❌ Error — intenta de nuevo';btn.disabled=false;}
   }
-  const n=new Date();
-  const fname='BD_SX_'+p2(n.getDate())+p2(n.getMonth()+1)+n.getFullYear()+'.xlsx';
-  XLSX.writeFile(wb,fname);
 }
 
 </script>
