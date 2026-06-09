@@ -628,6 +628,15 @@ function finalizarObra(){
   const nombre=g('ob-nombre');
   if(!nombre){alert('Ingresa el nombre o referencia del cliente.');return;}
   if(!obraResult){alert('Indica si el cliente compró o no.');return;}
+  // Capturar objeciones que se expandieron (tocadas por la promotora)
+  const objsMarcadas=[];
+  for(let i=0;i<6;i++){
+    const resp=document.getElementById('ob-obj-resp-'+i);
+    if(resp&&resp.style.display==='block'){
+      const labels=['Precio','Desconfianza','Costo de flete','Stock','Tiempos','Ya compró / aún no decide'];
+      objsMarcadas.push(labels[i]);
+    }
+  }
   const n=new Date();
   const v={
     tipo_visita:'obra',
@@ -640,12 +649,25 @@ function finalizarObra(){
     lat:window._obraLat||'',
     lon:window._obraLon||'',
     resultado:obraResult,
+    objeciones_tratadas:objsMarcadas.join(', '),
     otra_objecion:g('ob-otra-obj'),
-    motivo_no_compra:obraResult==='no-compro'?(document.querySelector('input[name="ob-motivo"]:checked')?.value||''):'',
     notas:g('ob-notas'),
     photos:{local:[...obraPhotos.local]},
   };
-  window._obraLat='';window._obraLon='';obraResult='';
+  // Reset variables
+  window._obraLat='';window._obraLon='';obraResult='';obraPhotos={local:[]};
+  // Reset DOM fields
+  ['ob-nombre','ob-tel','ob-otra-obj','ob-notas'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+  const gst=document.getElementById('ob-gst');if(gst){gst.textContent='';gst.style.color='';}
+  const pgrid=document.getElementById('ob-pgrid');if(pgrid)pgrid.innerHTML='';
+  // Reset botones resultado
+  ['ob-r-compro','ob-r-no-compro'].forEach(id=>{const b=document.getElementById(id);if(b){b.style.borderColor='var(--g200)';b.style.background='white';b.style.color='var(--g600)';}});
+  // Cerrar todas las objeciones expandidas
+  for(let i=0;i<6;i++){
+    const resp=document.getElementById('ob-obj-resp-'+i);if(resp)resp.style.display='none';
+    const arr=document.getElementById('ob-obj-arr-'+i);if(arr)arr.textContent='▸';
+    const opt=document.getElementById('ob-obj-'+i);if(opt)opt.classList.remove('sel');
+  }
   visits.push(v);
   postToSheets(v);
   updCount();
