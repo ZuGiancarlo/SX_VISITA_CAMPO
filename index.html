@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>SIDEREXPRESS · Promotora</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://unpkg.com/docx@8.5.0/build/index.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.js"></script>
 <style>
 :root{
   --red:#C0392B;--red-d:#922b21;--red-l:#fdf0ef;
@@ -384,20 +384,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--g100);color:va
       <div class="card-hdr">🎯 Resultado de la visita</div>
       <div class="seg-est-row" style="margin-bottom:.75rem">
         <button class="seg-est-btn activa" id="ob-r-compro" onclick="setObResult('compro')">✅ Compró</button>
-        <button class="seg-est-btn inactiva" id="ob-r-nocompro" onclick="setObResult('no-compro')">❌ No compró</button>
-      </div>
-      <div id="ob-motivo-wrap" style="display:none">
-        <div class="f"><label>Motivo principal</label>
-          <div class="rpills" style="flex-direction:column;gap:6px">
-            <label class="rp" style="border-radius:var(--rs)"><input type="radio" name="ob-motivo" value="Precio — encontró más barato"> Precio — encontró más barato</label>
-            <label class="rp" style="border-radius:var(--rs)"><input type="radio" name="ob-motivo" value="Ya compró en otro lugar"> Ya compró en otro lugar</label>
-            <label class="rp" style="border-radius:var(--rs)"><input type="radio" name="ob-motivo" value="No era el momento / aún no necesita"> No era el momento / aún no necesita</label>
-            <label class="rp" style="border-radius:var(--rs)"><input type="radio" name="ob-motivo" value="Mala experiencia previa"> Mala experiencia previa</label>
-            <label class="rp" style="border-radius:var(--rs)"><input type="radio" name="ob-motivo" value="Tema de pago / efectivo"> Tema de pago / efectivo</label>
-            <label class="rp" style="border-radius:var(--rs)"><input type="radio" name="ob-motivo" value="No conoce / no confía"> No conoce / no confía</label>
-            <label class="rp" style="border-radius:var(--rs)"><input type="radio" name="ob-motivo" value="Otro"> Otro</label>
-          </div>
-        </div>
+        <button class="seg-est-btn inactiva" id="ob-r-no-compro" onclick="setObResult('no-compro')">❌ No compró</button>
       </div>
     </div>
 
@@ -614,7 +601,6 @@ function setObResult(val){
     btn.style.background=active?(isCompro?'var(--green-l)':'var(--red-l)'):'white';
     btn.style.color=active?(isCompro?'var(--green)':'var(--red-d)'):'var(--g600)';
   });
-  document.getElementById('ob-motivo-wrap').style.display=val==='no-compro'?'block':'none';
 }
 function doGPSOb(){
   const st=document.getElementById('ob-gst');
@@ -1006,9 +992,10 @@ function setReactivado(val){
   segRec.reactivado=val;
   const box=document.getElementById('react-si-box');
   if(box) box.classList.toggle('on',val===true);
-  document.querySelectorAll('.react-btn').forEach(b=>{b.classList.remove('sel');});
-  const btn=val?document.querySelector('.react-si'):document.querySelector('.react-no');
-  if(btn) btn.classList.add('sel');
+  const btnSi=document.querySelector('.react-si');
+  const btnNo=document.querySelector('.react-no');
+  if(btnSi){btnSi.classList.toggle('sel',val===true);btnSi.style.background=val===true?'var(--green)':'white';btnSi.style.color=val===true?'white':'var(--red)';btnSi.style.borderColor=val===true?'var(--green)':'var(--red)';}
+  if(btnNo){btnNo.classList.toggle('sel',val===false);btnNo.style.background=val===false?'var(--red-l)':'white';btnNo.style.color=val===false?'var(--red-d)':'var(--red)';btnNo.style.borderColor='var(--red)';}
 }
 function saveSeg1Activa(){
   const g=id=>{const e=document.getElementById(id);return e?e.value.trim():'';};
@@ -1437,7 +1424,7 @@ function saveRegData(){
     +' | '+(rec.hor_sa_ap==='No abre'?'Sáb: No abre':rec.hor_sa_ap&&rec.hor_sa_ci?`Sáb: ${rec.hor_sa_ap}–${rec.hor_sa_ci}`:'Sáb: —');
   rec.tent=document.querySelector('input[name="r-tent"]:checked')?.value||'';
   rec.minflete=g('r-minflete');rec.flete=g('r-flete');
-  rec.cobertura=rec.distrito&&VECINOS[rec.distrito]?VECINOS[rec.distrito].join(', '):'';
+  rec.cobertura=rec.distrito&&VECINOS[rec.distrito]?VECINOS[rec.distrito].join(', '):(rec.distrito||'');
   saveCont();
 }
 
@@ -1481,7 +1468,11 @@ function setInteres(val){
 function selObj(i){
   const allObjs=[...OBJECIONES,...customObjs.map(t=>({txt:t,resp:''}))];
   rec.objecion=allObjs[i].txt;
-  document.querySelectorAll('.obj-opt').forEach((el,j)=>{el.classList.toggle('sel',j===i);el.querySelector('input[type=radio]').checked=j===i;});
+  document.querySelectorAll('.obj-opt').forEach((el,j)=>{
+    el.classList.toggle('sel',j===i);
+    const radio=el.querySelector('input[type=radio]');
+    if(radio) radio.checked=(j===i);
+  });
 }
 function addObj(){const inp=document.getElementById('obj-new');if(!inp||!inp.value.trim())return;customObjs.push(inp.value.trim());saveConv();render();setTimeout(()=>setInteres(false),10);}
 
