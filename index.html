@@ -179,6 +179,14 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--g100);color:va
 .wa-txt{font-size:12px;color:#1a4a25;line-height:1.6;white-space:pre-wrap;word-break:break-word;}
 .btn-copy{width:100%;padding:10px;background:var(--green);color:white;border:none;border-radius:var(--rs);font-size:13px;font-weight:600;cursor:pointer;margin-top:.5rem;}
 .btn-pdf{width:100%;padding:12px;background:var(--blue);color:white;border:none;border-radius:var(--r);font-size:14px;font-weight:700;cursor:pointer;margin-top:.75rem;}
+/* Destino visita */
+.dest-card{background:white;border-radius:var(--r);border:2px solid var(--g200);padding:1.75rem 1.25rem;margin-bottom:1rem;display:flex;align-items:center;gap:16px;cursor:pointer;transition:border-color .15s,background .15s,transform .1s;}
+.dest-card:active{transform:scale(.98);}
+.dest-card.ferr{border-color:var(--red);}
+.dest-card.obra{border-color:#7d3c98;}
+.dest-ico{font-size:42px;flex-shrink:0;}
+.dest-t strong{display:block;font-size:16px;font-weight:700;margin-bottom:3px;}
+.dest-t span{font-size:12px;color:var(--g600);line-height:1.4;}
 /* Tipo visita */
 .tipo-card{background:white;border-radius:var(--r);border:2px solid var(--g200);padding:1.5rem 1.25rem;margin-bottom:1rem;display:flex;align-items:center;gap:14px;cursor:pointer;transition:border-color .15s,background .15s;}
 .tipo-card:active{transform:scale(.98);}
@@ -248,6 +256,22 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--g100);color:va
   </div>
 </div>
 
+<!-- DESTINO DE VISITA -->
+<div class="scr" id="scr-dest">
+  <div class="topbar"><span class="tb-back" onclick="goHome()">← Volver</span><span class="tb-step" style="margin-left:auto">Destino de visita</span></div>
+  <div class="sw" style="padding-top:1.25rem">
+    <div class="ai" style="margin-bottom:1.25rem">¿A dónde vas a visitar?</div>
+    <div class="dest-card ferr" onclick="selectDest('ferreteria')">
+      <div class="dest-ico">🏪</div>
+      <div class="dest-t"><strong>Ferretería</strong><span>Visita a ferretería de la red SX — prospección o seguimiento</span></div>
+    </div>
+    <div class="dest-card obra" onclick="selectDest('obra')">
+      <div class="dest-ico">🏗️</div>
+      <div class="dest-t"><strong>Obra</strong><span>Visita directa a obra o proyecto de construcción</span></div>
+    </div>
+  </div>
+</div>
+
 <!-- TIPO DE VISITA -->
 <div class="scr" id="scr-tipo">
   <div class="topbar"><span class="tb-back" onclick="goHome()">← Volver</span><span class="tb-step" style="margin-left:auto">Tipo de visita</span></div>
@@ -261,6 +285,128 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--g100);color:va
       <div class="tipo-ico">📌</div>
       <div class="tipo-t"><strong>Visita de seguimiento</strong><span>Ferretería ya registrada en la red SX (activa o inactiva)</span></div>
     </div>
+  </div>
+</div>
+
+<!-- FORM OBRA -->
+<div class="scr" id="scr-obra">
+  <div class="topbar">
+    <span class="tb-back" onclick="show('scr-dest')">← Volver</span>
+    <span class="tb-step" style="margin-left:auto">Visita a Obra</span>
+  </div>
+  <div class="sw" style="padding-top:.875rem">
+    <div class="aw" style="margin-bottom:.875rem">📋 Cliente con cotización pendiente — objetivo: cerrar la venta hoy.</div>
+
+    <div class="card">
+      <div class="card-hdr">👤 Cliente</div>
+      <div class="f"><label>Nombre / referencia</label><input type="text" id="ob-nombre" placeholder="Ej: Juan García, Edificio Los Pinos..."></div>
+      <div class="f"><label>Teléfono WhatsApp</label><input type="tel" id="ob-tel" placeholder="9XXXXXXXX"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-hdr">📡 Evidencia de visita</div>
+      <div class="f">
+        <button type="button" class="gps-btn" onclick="doGPSOb()" style="height:40px">📡 Capturar GPS</button>
+        <div class="gps-st" id="ob-gst"></div>
+      </div>
+      <div class="f">
+        <label class="photo-btn">📷 Tomar foto<input type="file" accept="image/*" capture="environment" style="display:none" onchange="addPhOb(this)"></label>
+        <div class="pgrid" id="ob-pgrid"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-hdr">💬 Objeciones frecuentes</div>
+      <div class="fhint" style="margin-bottom:.75rem">Toca la objeción que está poniendo el cliente para ver cómo manejarla.</div>
+      <div id="ob-obj-list">
+        <div class="obj-opt" id="ob-obj-0" onclick="toggleObObj(0)">
+          <div class="obj-top" style="cursor:pointer;display:flex;align-items:center">
+            <span style="font-size:13px;font-weight:600;color:var(--g800);flex:1;line-height:1.4">💲 Precio — está muy caro / encontré más barato</span>
+            <span id="ob-obj-arr-0" style="font-size:18px;color:var(--g400);margin-left:8px">▸</span>
+          </div>
+          <div id="ob-obj-resp-0" style="display:none;padding:.625rem .75rem .75rem;background:var(--green-l);border-top:1px solid var(--g200);font-size:12px;color:#1a4a25;line-height:1.6;font-style:italic">
+            💬 Ofrecemos el mejor precio comparado más el respaldo de marca SIDERPERÚ. Pregúntale en qué producto específico y si tiene otra referencia — muchas veces la diferencia es mínima o incluye costos ocultos (flete, garantía).
+          </div>
+        </div>
+        <div class="obj-opt" id="ob-obj-1" onclick="toggleObObj(1)">
+          <div class="obj-top" style="cursor:pointer;display:flex;align-items:center">
+            <span style="font-size:13px;font-weight:600;color:var(--g800);flex:1;line-height:1.4">🛡️ Desconfianza — no conoce SX / no confía</span>
+            <span id="ob-obj-arr-1" style="font-size:18px;color:var(--g400);margin-left:8px">▸</span>
+          </div>
+          <div id="ob-obj-resp-1" style="display:none;padding:.625rem .75rem .75rem;background:var(--green-l);border-top:1px solid var(--g200);font-size:12px;color:#1a4a25;line-height:1.6;font-style:italic">
+            💬 SIDEREXPRESS es la plataforma oficial de SIDERPERÚ — garantía total. Muéstrale el WhatsApp activo, las ferreterías que trabajan en su zona. Ofrece una cotización sin compromiso para que vea cómo funciona.
+          </div>
+        </div>
+        <div class="obj-opt" id="ob-obj-2" onclick="toggleObObj(2)">
+          <div class="obj-top" style="cursor:pointer;display:flex;align-items:center">
+            <span style="font-size:13px;font-weight:600;color:var(--g800);flex:1;line-height:1.4">🚚 Costo de flete — sale caro el despacho</span>
+            <span id="ob-obj-arr-2" style="font-size:18px;color:var(--g400);margin-left:8px">▸</span>
+          </div>
+          <div id="ob-obj-resp-2" style="display:none;padding:.625rem .75rem .75rem;background:var(--green-l);border-top:1px solid var(--g200);font-size:12px;color:#1a4a25;line-height:1.6;font-style:italic">
+            💬 El flete garantiza seguridad y puntualidad. Al optimizar ruta y volumen, el costo unitario baja. Pregúntale el volumen total del pedido — si agrupa materiales, el flete se distribuye y suele salir más barato que ir a recoger.
+          </div>
+        </div>
+        <div class="obj-opt" id="ob-obj-3" onclick="toggleObObj(3)">
+          <div class="obj-top" style="cursor:pointer;display:flex;align-items:center">
+            <span style="font-size:13px;font-weight:600;color:var(--g800);flex:1;line-height:1.4">📦 Stock — no sé si tienen el material</span>
+            <span id="ob-obj-arr-3" style="font-size:18px;color:var(--g400);margin-left:8px">▸</span>
+          </div>
+          <div id="ob-obj-resp-3" style="display:none;padding:.625rem .75rum .75rem;background:var(--green-l);border-top:1px solid var(--g200);font-size:12px;color:#1a4a25;line-height:1.6;font-style:italic">
+            💬 El inventario rota rápido. Confirmando ahora congelamos el stock para su pedido. Pregúntale qué producto necesita y en qué cantidad — así coordinamos con la ferretería más cercana.
+          </div>
+        </div>
+        <div class="obj-opt" id="ob-obj-4" onclick="toggleObObj(4)">
+          <div class="obj-top" style="cursor:pointer;display:flex;align-items:center">
+            <span style="font-size:13px;font-weight:600;color:var(--g800);flex:1;line-height:1.4">⏱️ Tiempos — no llegan a tiempo / demoran</span>
+            <span id="ob-obj-arr-4" style="font-size:18px;color:var(--g400);margin-left:8px">▸</span>
+          </div>
+          <div id="ob-obj-resp-4" style="display:none;padding:.625rem .75rem .75rem;background:var(--green-l);border-top:1px solid var(--g200);font-size:12px;color:#1a4a25;line-height:1.6;font-style:italic">
+            💬 Conectamos con la ferretería más cercana a su obra para entrega rápida. Pregúntale para qué fecha necesita el material — si es urgente, priorizamos ferreterías con stock en su zona.
+          </div>
+        </div>
+        <div class="obj-opt" id="ob-obj-5" onclick="toggleObObj(5)">
+          <div class="obj-top" style="cursor:pointer;display:flex;align-items:center">
+            <span style="font-size:13px;font-weight:600;color:var(--g800);flex:1;line-height:1.4">🕐 Ya compré / aún no decido</span>
+            <span id="ob-obj-arr-5" style="font-size:18px;color:var(--g400);margin-left:8px">▸</span>
+          </div>
+          <div id="ob-obj-resp-5" style="display:none;padding:.625rem .75rem .75rem;background:var(--green-l);border-top:1px solid var(--g200);font-size:12px;color:#1a4a25;line-height:1.6;font-style:italic">
+            💬 Si ya compró: pregunta para cuándo será la siguiente etapa y deja el canal abierto. Si aún no decide: pregúntale qué factor lo detiene y usa el cierre transversal — "Si confirmas hoy, podríamos programar el pedido para mañana y acceder al bono vigente."
+          </div>
+        </div>
+      </div>
+      <div style="margin-top:.75rem">
+        <div class="fhint" style="margin-bottom:4px">¿Otra objeción? Anótala:</div>
+        <input type="text" id="ob-otra-obj" placeholder="Describe la objeción..." style="width:100%;padding:9px 11px;border:1.5px solid var(--g200);border-radius:var(--rs);font-size:13px;background:var(--g50)">
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-hdr">🎯 Resultado de la visita</div>
+      <div class="seg-est-row" style="margin-bottom:.75rem">
+        <button class="seg-est-btn activa" id="ob-r-compro" onclick="setObResult('compro')">✅ Compró</button>
+        <button class="seg-est-btn inactiva" id="ob-r-nocompro" onclick="setObResult('no-compro')">❌ No compró</button>
+      </div>
+      <div id="ob-motivo-wrap" style="display:none">
+        <div class="f"><label>Motivo principal</label>
+          <div class="rpills" style="flex-direction:column;gap:6px">
+            <label class="rp" style="border-radius:var(--rs)"><input type="radio" name="ob-motivo" value="Precio — encontró más barato"> Precio — encontró más barato</label>
+            <label class="rp" style="border-radius:var(--rs)"><input type="radio" name="ob-motivo" value="Ya compró en otro lugar"> Ya compró en otro lugar</label>
+            <label class="rp" style="border-radius:var(--rs)"><input type="radio" name="ob-motivo" value="No era el momento / aún no necesita"> No era el momento / aún no necesita</label>
+            <label class="rp" style="border-radius:var(--rs)"><input type="radio" name="ob-motivo" value="Mala experiencia previa"> Mala experiencia previa</label>
+            <label class="rp" style="border-radius:var(--rs)"><input type="radio" name="ob-motivo" value="Tema de pago / efectivo"> Tema de pago / efectivo</label>
+            <label class="rp" style="border-radius:var(--rs)"><input type="radio" name="ob-motivo" value="No conoce / no confía"> No conoce / no confía</label>
+            <label class="rp" style="border-radius:var(--rs)"><input type="radio" name="ob-motivo" value="Otro"> Otro</label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-hdr">📝 Notas rápidas</div>
+      <textarea id="ob-notas" style="width:100%;min-height:72px;padding:9px 11px;border:1.5px solid var(--g200);border-radius:var(--rs);font-size:14px;background:var(--g50);resize:vertical" placeholder="Lo más relevante de la conversación..."></textarea>
+    </div>
+
+    <button class="btn-p" onclick="finalizarObra()">Guardar visita ✓</button>
   </div>
 </div>
 
@@ -433,7 +579,92 @@ function chooseTipo(){
   if(!sesion.provincia||!sesion.promotor){
     alert('Selecciona provincia y promotor antes de registrar una visita.');return;
   }
-  show('scr-tipo');
+  show('scr-dest');
+}
+function selectDest(dest){
+  if(dest==='ferreteria'){
+    show('scr-tipo');
+  } else {
+    // Obra
+    obraPhotos={local:[]};obraResult='';
+    show('scr-obra');
+  }
+}
+
+function toggleObObj(i){
+  const resp=document.getElementById('ob-obj-resp-'+i);
+  const arr=document.getElementById('ob-obj-arr-'+i);
+  const opt=document.getElementById('ob-obj-'+i);
+  const open=resp.style.display==='block';
+  resp.style.display=open?'none':'block';
+  if(arr) arr.textContent=open?'▸':'▾';
+  if(opt) opt.classList.toggle('sel',!open);
+}
+
+let obraPhotos={local:[]};
+let obraResult='';
+function setObResult(val){
+  obraResult=val;
+  ['compro','no-compro'].forEach(v=>{
+    const btn=document.getElementById('ob-r-'+v);
+    if(!btn)return;
+    const isCompro=v==='compro';
+    const active=val===v;
+    btn.style.borderColor=active?(isCompro?'var(--green)':'var(--red)'):'var(--g200)';
+    btn.style.background=active?(isCompro?'var(--green-l)':'var(--red-l)'):'white';
+    btn.style.color=active?(isCompro?'var(--green)':'var(--red-d)'):'var(--g600)';
+  });
+  document.getElementById('ob-motivo-wrap').style.display=val==='no-compro'?'block':'none';
+}
+function doGPSOb(){
+  const st=document.getElementById('ob-gst');
+  st.textContent='⏳ Obteniendo...';
+  navigator.geolocation.getCurrentPosition(p=>{
+    window._obraLat=p.coords.latitude.toFixed(7);
+    window._obraLon=p.coords.longitude.toFixed(7);
+    const acc=Math.round(p.coords.accuracy);
+    st.textContent=`✅ ${(+window._obraLat).toFixed(4)}, ${(+window._obraLon).toFixed(4)} (±${acc}m)`;
+    st.style.color='#1a7a3c';
+  },()=>{st.textContent='❌ No disponible';st.style.color='#c0392b';},{enableHighAccuracy:true,timeout:10000});
+}
+function addPhOb(inp){
+  Array.from(inp.files).forEach(f=>{
+    const r=new FileReader();r.onload=e=>{obraPhotos.local.push(e.target.result);renderPhOb();};r.readAsDataURL(f);
+  });
+}
+function renderPhOb(){
+  const g=document.getElementById('ob-pgrid');if(!g)return;
+  g.innerHTML=obraPhotos.local.map((d,i)=>`<div class="pthumb"><img src="${d}"><button class="pdel" onclick="delPhOb(${i})">×</button></div>`).join('');
+}
+function delPhOb(i){obraPhotos.local.splice(i,1);renderPhOb();}
+function finalizarObra(){
+  const g=id=>{const e=document.getElementById(id);return e?e.value.trim():'';};
+  const nombre=g('ob-nombre');
+  if(!nombre){alert('Ingresa el nombre o referencia del cliente.');return;}
+  if(!obraResult){alert('Indica si el cliente compró o no.');return;}
+  const n=new Date();
+  const v={
+    tipo_visita:'obra',
+    fecha:p2(n.getDate())+'/'+p2(n.getMonth()+1)+'/'+n.getFullYear(),
+    hora:p2(n.getHours())+':'+p2(n.getMinutes()),
+    provincia:sesion.provincia,
+    promotor:sesion.promotor,
+    nombre,
+    tel:g('ob-tel'),
+    lat:window._obraLat||'',
+    lon:window._obraLon||'',
+    resultado:obraResult,
+    otra_objecion:g('ob-otra-obj'),
+    motivo_no_compra:obraResult==='no-compro'?(document.querySelector('input[name="ob-motivo"]:checked')?.value||''):'',
+    notas:g('ob-notas'),
+    photos:{local:[...obraPhotos.local]},
+  };
+  window._obraLat='';window._obraLon='';obraResult='';
+  visits.push(v);
+  postToSheets(v);
+  updCount();
+  alert('✅ Visita guardada.');
+  goHome();
 }
 function selectProv(prov){
   sesion.provincia=prov;sesion.promotor='';
@@ -504,37 +735,30 @@ function setSegStep(n){segStep=n;renderSeg();}
 // ── SEG STEP 0: IDENTIFICACIÓN ──
 function segS0(){
   const r=segRec;
-  const ciudadSel=r.seg_ciudad||'';
+  // Usar la provincia ya seleccionada en inicio — mapear a ciudad de ferreterías
+  const ciudadSel=sesion.provincia==='La Libertad'?'Trujillo':'Lima';
+  if(!r.seg_ciudad) r.seg_ciudad=ciudadSel; // inicializar si no está
   const estadoSel=r.seg_estado||'activa';
-  const lista=ciudadSel?getFerrs(ciudadSel,estadoSel==='activa'?'ACTIVA':estadoSel==='inactiva'?'INACTIVA':'EN REVISION'):[];
-  const enRevLima=getFerrs('Lima','EN REVISION');
-  const enRevTruj=getFerrs('Trujillo','EN REVISION');
-  const enRevHint=estadoSel==='activa'&&ciudadSel?
-    (ciudadSel==='Lima'?enRevLima:enRevTruj).length>0?
-      `<div class="fhint">⚠️ También hay ${(ciudadSel==='Lima'?enRevLima:enRevTruj).length} en revisión (no aparecen aquí hasta confirmar estado)</div>`:''
-    :'';
+  const lista=getFerrs(ciudadSel,estadoSel==='activa'?'ACTIVA':estadoSel==='inactiva'?'INACTIVA':'EN REVISION');
+  const enRevLista=getFerrs(ciudadSel,'EN REVISION');
+  const enRevHint=estadoSel==='activa'&&enRevLista.length>0?
+    `<div class="fhint">⚠️ También hay ${enRevLista.length} en revisión (no aparecen aquí hasta confirmar estado)</div>`:'';
   const optsHtml=lista.map(f=>`<option value="${f.cod}" ${r.seg_cod===f.cod?'selected':''}>${f.nom}</option>`).join('');
   return `<div class="sw">
   <div class="card">
-    <div class="card-hdr">🏙️ Ciudad</div>
-    <div class="seg-est-row">
-      <button class="seg-est-btn activa ${ciudadSel==='Lima'?'sel':''}" style="border-color:var(--blue-m);color:${ciudadSel==='Lima'?'var(--blue)':'var(--g600)'}; background:${ciudadSel==='Lima'?'var(--blue-l)':'white'}" onclick="setSegCiudad('Lima')">🏙️ Lima</button>
-      <button class="seg-est-btn activa ${ciudadSel==='Trujillo'?'sel':''}" style="border-color:var(--blue-m);color:${ciudadSel==='Trujillo'?'var(--blue)':'var(--g600)'}; background:${ciudadSel==='Trujillo'?'var(--blue-l)':'white'}" onclick="setSegCiudad('Trujillo')">🏙️ Trujillo</button>
-    </div>
-  </div>
-  <div class="card">
     <div class="card-hdr">📌 Estado de la ferretería</div>
+    <div class="fhint" style="margin-bottom:.625rem">Zona: <strong>${ciudadSel}</strong></div>
     <div class="seg-est-row">
       <button class="seg-est-btn activa ${estadoSel==='activa'?'sel':''}" onclick="setSegEstado('activa')">✅ Activa</button>
       <button class="seg-est-btn inactiva ${estadoSel==='inactiva'?'sel':''}" onclick="setSegEstado('inactiva')">⏸ Inactiva</button>
     </div>
     <div class="f">
       <label>Ferretería visitada</label>
-      <select id="seg-ferr" ${!ciudadSel?'disabled':''}>
-        <option value="">— ${!ciudadSel?'Selecciona ciudad primero':'Seleccionar ferretería'} —</option>
+      <select id="seg-ferr">
+        <option value="">— Seleccionar ferretería —</option>
         ${optsHtml}
       </select>
-      <div class="fhint">${ciudadSel?lista.length+' ferreterías '+estadoSel+'s en '+ciudadSel:'Elige ciudad para ver la lista'}</div>
+      <div class="fhint">${lista.length} ferreterías ${estadoSel}s en ${ciudadSel}</div>
       ${enRevHint}
     </div>
   </div>
@@ -716,9 +940,10 @@ function saveSeg0partial(){
 }
 function saveSeg0(){
   const sel=document.getElementById('seg-ferr');
-  if(!segRec.seg_ciudad){alert('Selecciona una ciudad.');return false;}
   if(!sel||!sel.value){alert('Selecciona una ferretería.');return false;}
   segRec.seg_cod=sel.value;
+  // Asegurar ciudad asignada desde sesión
+  if(!segRec.seg_ciudad) segRec.seg_ciudad=sesion.provincia==='La Libertad'?'Trujillo':'Lima';
   return true;
 }
 function setNPS(n){
@@ -810,7 +1035,7 @@ const GS_URL = 'https://script.google.com/macros/s/AKfycbzSK8uKvwZ_BIiHM8Keh9Led
 
 function postToSheets(data){
   if(!GS_URL||GS_URL.startsWith('REEMPLAZAR')) return; // skip si no configurado
-  fetch(GS_URL,{method:'POST',body:JSON.stringify(data)})
+  fetch(GS_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},body:JSON.stringify(data)})
     .catch(()=>{}); // silencioso — no bloquea el flujo
 }
 
@@ -1368,31 +1593,37 @@ function buildRes(){
       const cls=isAct||isReact?'breg':'bvi';
       return `<div class="vi"><div class="vi-n">${i+1}</div><div class="vi-i"><h4>${nom}</h4><p>📌 Seguimiento · ${v.hora}</p></div><span class="vi-b ${cls}">${lbl}</span></div>`;
     }
+    if(v.tipo_visita==='obra'){
+      const res=v.resultado==='compro';
+      return `<div class="vi"><div class="vi-n">${i+1}</div><div class="vi-i"><h4>${v.nombre||'Obra'}</h4><p>🏗️ Cotización fría · ${v.hora}</p></div><span class="vi-b" style="background:${res?'var(--green-l)':'var(--red-l)'};color:${res?'var(--green)':'var(--red-d)'}">${res?'✅ Compró':'❌ No compró'}</span></div>`;
+    }
     return `<div class="vi">
     <div class="vi-n">${i+1}</div>
     <div class="vi-i"><h4>${v.nc_obs||'—'}</h4><p>${v.distrito||'—'} · ${v.hora}</p></div>
     <span class="vi-b ${ECLS[v.estado]||'bsc'}">${ELBL[v.estado]||v.estado}</span>
   </div>`;
   }).join(''):'<div style="text-align:center;padding:2rem;color:#999;font-size:13px">Sin visitas aún</div>';
-  const prosp=visits.filter(v=>v.tipo_visita!=='seguimiento');
+  const prosp=visits.filter(v=>v.tipo_visita!=='seguimiento'&&v.tipo_visita!=='obra');
   const regs=prosp.filter(v=>v.estado==='registrada');
   const vis=prosp.filter(v=>v.estado==='visitada');
   const noApto=prosp.filter(v=>v.estado==='prospecto-no-apto');
   const sc=prosp.filter(v=>v.estado==='sin-contacto');
   const segs=visits.filter(v=>v.tipo_visita==='seguimiento');
+  const obras=visits.filter(v=>v.tipo_visita==='obra');
   const segAct=segs.filter(v=>v.seg_estado==='activa');
   const segInact=segs.filter(v=>v.seg_estado==='inactiva'&&!v.reactivado);
   const segReact=segs.filter(v=>v.reactivado===true);
   const objs=vis.map(v=>v.objecion).filter(Boolean);
   const top=objs.length?objs.sort((a,b)=>objs.filter(x=>x===b).length-objs.filter(x=>x===a).length)[0]:'Ninguna';
   document.getElementById('wmsg').textContent=
-`📊 *REPORTE VISITAS DEL DÍA*\nPromotor: ${sesion.promotor||'[nombre]'}\nZona: ${sesion.provincia||'[zona]'}\nFecha: ${p2(n.getDate())}/${p2(n.getMonth()+1)}/${n.getFullYear()}\n\n*PROSPECCIÓN:*\n✅ Registradas: ${regs.length}\n💬 Visitadas / no interesadas: ${vis.length}\n⏳ Prospectos no aptos: ${noApto.length}\n👁️ Sin contacto (volver): ${sc.length}\n🚫 Objeción más común: ${top}\n\n*SEGUIMIENTO:*\n📌 Activas visitadas: ${segAct.length}\n⏸ Inactivas visitadas: ${segInact.length}\n🔄 Reactivadas hoy: ${segReact.length}\n\n*REGISTROS NUEVOS:*\n${regs.map(r=>'  • '+(r.nc_obs||'—')+' | '+r.distrito+' | '+r.codigo).join('\n')||'  Ninguno'}\n\n*REACTIVACIONES:*\n${segReact.map(v=>{const f=TODAS_FERRETERIAS.find(x=>x.cod===v.seg_cod);return '  • '+(f?f.nom:v.seg_cod||'—');}).join('\n')||'  Ninguna'}\n\n*VOLVER A VISITAR (sin contacto):*\n${sc.map(v=>'  • '+(v.nc_obs||'—')+' | '+v.distrito+' | '+(v.nc_razon||'—')).join('\n')||'  Ninguna'}\n\n_App SIDEREXPRESS_`;
+`📊 *REPORTE VISITAS DEL DÍA*\nPromotor: ${sesion.promotor||'[nombre]'}\nZona: ${sesion.provincia||'[zona]'}\nFecha: ${p2(n.getDate())}/${p2(n.getMonth()+1)}/${n.getFullYear()}\n\n*PROSPECCIÓN FERRETERÍAS:*\n✅ Registradas: ${regs.length}\n💬 Visitadas / no interesadas: ${vis.length}\n⏳ Prospectos no aptos: ${noApto.length}\n👁️ Sin contacto (volver): ${sc.length}\n🚫 Objeción más común: ${top}\n\n*SEGUIMIENTO FERRETERÍAS:*\n📌 Activas visitadas: ${segAct.length}\n⏸ Inactivas visitadas: ${segInact.length}\n🔄 Reactivadas hoy: ${segReact.length}\n\n*COTIZACIONES FRÍAS VISITADAS (${obras.length}):*\n${obras.map(v=>`  ${v.resultado==='compro'?'✅':'❌'} ${v.nombre||'—'}${v.resultado==='no-compro'&&v.motivo_no_compra?' — '+v.motivo_no_compra:''}`).join('\n')||'  Ninguna'}\n\n*REGISTROS NUEVOS:*\n${regs.map(r=>'  • '+(r.nc_obs||'—')+' | '+r.distrito+' | '+r.codigo).join('\n')||'  Ninguno'}\n\n*REACTIVACIONES:*\n${segReact.map(v=>{const f=TODAS_FERRETERIAS.find(x=>x.cod===v.seg_cod);return '  • '+(f?f.nom:v.seg_cod||'—');}).join('\n')||'  Ninguna'}\n\n*VOLVER A VISITAR (sin contacto):*\n${sc.map(v=>'  • '+(v.nc_obs||'—')+' | '+v.distrito+' | '+(v.nc_razon||'—')).join('\n')||'  Ninguna'}\n\n_App SIDEREXPRESS_`;
 }
 function dlRes(){buildRes();const txt=document.getElementById('wmsg').textContent;const a=window.document.createElement('a');a.href=URL.createObjectURL(new Blob([txt],{type:'text/plain;charset=utf-8'}));a.download='Resumen_SX_'+new Date().toISOString().slice(0,10)+'.txt';a.click();}
 
 // ── DOCX INFORME SALIDA A CAMPO ──
 async function genReporteDocx(){
   if(!visits.length){alert('Sin visitas registradas aún.');return;}
+  if(typeof docx==='undefined'){alert('La librería de documentos no está disponible. Verifica tu conexión a internet e intenta de nuevo.');return;}
   const btn=document.querySelector('.btn-pdf');
   if(btn){btn.textContent='⏳ Generando informe...';btn.disabled=true;}
   try{
@@ -1718,15 +1949,31 @@ async function genReporteDocx(){
     });
 
     const blob=await Packer.toBlob(wxDoc);
-    const url=URL.createObjectURL(blob);
-    const a=window.document.createElement('a');
-    a.href=url;a.download='Informe_SX_'+hoy.replace(/\//g,'')+'.docx';
-    window.document.body.appendChild(a);a.click();
-    window.document.body.removeChild(a);URL.revokeObjectURL(url);
+    // iOS Safari no permite a.click() en blob URLs — usar FileReader como fallback
+    if(window.navigator.userAgent.match(/iPhone|iPad/i)){
+      const reader=new FileReader();
+      reader.onloadend=()=>{
+        const a=window.document.createElement('a');
+        a.href=reader.result;a.download='Informe_SX_'+hoy.replace(/\//g,'')+'.docx';
+        window.document.body.appendChild(a);a.click();window.document.body.removeChild(a);
+      };
+      reader.readAsDataURL(blob);
+    } else {
+      const url=URL.createObjectURL(blob);
+      const a=window.document.createElement('a');
+      a.href=url;a.download='Informe_SX_'+hoy.replace(/\//g,'')+'.docx';
+      a.style.display='none';
+      window.document.body.appendChild(a);a.click();
+      setTimeout(()=>{window.document.body.removeChild(a);URL.revokeObjectURL(url);},500);
+    }
     if(btn){btn.textContent='✅ Informe descargado';btn.disabled=false;
       setTimeout(()=>btn.textContent='📄 Descargar informe del día (.docx)',3000);}
   }catch(err){
     console.error(err);
+    // Fallback: si docx no cargó, ofrecer resumen en texto
+    if(typeof docx==='undefined'){
+      alert('La librería de documentos no cargó (sin conexión). Usa "Copiar mensaje" para enviar el resumen al supervisor.');
+    }
     if(btn){btn.textContent='❌ Error — intenta de nuevo';btn.disabled=false;}
   }
 }
