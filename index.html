@@ -440,7 +440,6 @@ let photos={local:[],vehiculo:[]};
 let sigCtx,sigDrw=false,sigLX,sigLY,sigOK=false;
 let customObjs=[];
 let customVhs=[];
-let chkA={0:null,1:null,2:null,3:null};
 let interesVal=null;
 
 // ── SEGUIMIENTO STATE ──
@@ -465,7 +464,7 @@ function addPromotor(prov,nombre){
 // Estado: ACTIVA | INACTIVA | EN REVISION  — ciudad: Lima | Trujillo
 const TODAS_FERRETERIAS=[
   // ── LIMA ──
-  {cod:'LIME001',nom:'A&L San Sebastian',ciudad:'Lima',estado:'EN REVISION'},
+  {cod:'LIME001',nom:'A&L San Sebastian',ciudad:'Lima',estado:'INACTIVA'},
   {cod:'LIME002',nom:'ADAM MAEL',ciudad:'Lima',estado:'INACTIVA'},
   {cod:'LIME003',nom:'AMPER',ciudad:'Lima',estado:'INACTIVA'},
   {cod:'LIME004',nom:'ANDY',ciudad:'Lima',estado:'INACTIVA'},
@@ -508,7 +507,7 @@ const TODAS_FERRETERIAS=[
   {cod:'LIME037-2',nom:'NORMACO - LOS OLIVOS',ciudad:'Lima',estado:'INACTIVA'},
   {cod:'LIME037-3',nom:'NORMACO - COMAS',ciudad:'Lima',estado:'INACTIVA'},
   {cod:'LIME038',nom:'DANSA - PANANORTE',ciudad:'Lima',estado:'INACTIVA'},
-  {cod:'LIME039',nom:'QUIRA',ciudad:'Lima',estado:'EN REVISION'},
+  {cod:'LIME039',nom:'QUIRA',ciudad:'Lima',estado:'ACTIVA'},
   {cod:'LIME041',nom:'SAN HILARION',ciudad:'Lima',estado:'INACTIVA'},
   {cod:'LIME042',nom:'SAN JUAN',ciudad:'Lima',estado:'ACTIVA'},
   {cod:'LIME043',nom:'SANTA CRUZ E.I.R.L.',ciudad:'Lima',estado:'ACTIVA'},
@@ -528,9 +527,9 @@ const TODAS_FERRETERIAS=[
   {cod:'TRUJ013',nom:'LA SOLUCION',ciudad:'Trujillo',estado:'ACTIVA'},
   {cod:'TRUJ014',nom:'MERI CONSTRUCCIONES',ciudad:'Trujillo',estado:'INACTIVA'},
   {cod:'TRUJ015',nom:'OMEGA FERRETEROS',ciudad:'Trujillo',estado:'ACTIVA'},
-  {cod:'TRUJ016',nom:'FERRETERIA BETO',ciudad:'Trujillo',estado:'EN REVISION'},
+  {cod:'TRUJ016',nom:'FERRETERIA BETO',ciudad:'Trujillo',estado:'ACTIVA'},
   {cod:'TRUJ017',nom:'FERRETERIA TORRES',ciudad:'Trujillo',estado:'ACTIVA'},
-  {cod:'TRUJ018',nom:'FERRETERIA MORENO Y HERMANOS',ciudad:'Trujillo',estado:'EN REVISION'},
+  {cod:'TRUJ018',nom:'FERRETERIA MORENO Y HERMANOS',ciudad:'Trujillo',estado:'INACTIVA'},
   {cod:'TRUJ019',nom:'SOCIO FERRETERIA Y HERRAMIENTAS',ciudad:'Trujillo',estado:'INACTIVA'},
   {cod:'TRUJ020',nom:'SODECON',ciudad:'Trujillo',estado:'INACTIVA'},
   {cod:'TRUJ021',nom:'JAVEKA',ciudad:'Trujillo',estado:'INACTIVA'},
@@ -725,9 +724,10 @@ function segS0(){
   const ciudadSel=sesion.provincia==='La Libertad'?'Trujillo':'Lima';
   if(!r.seg_ciudad) r.seg_ciudad=ciudadSel; // inicializar si no está
   const estadoSel=r.seg_estado||'activa';
-  const lista=getFerrs(ciudadSel,estadoSel==='activa'?'ACTIVA':estadoSel==='inactiva'?'INACTIVA':'EN REVISION');
+  const lista=getFerrs(ciudadSel,estadoSel==='activa'?'ACTIVA':'INACTIVA');
+  const estLbl=estadoSel==='activa'?'activas':'inactivas';
   const enRevLista=getFerrs(ciudadSel,'EN REVISION');
-  const enRevHint=estadoSel==='activa'&&enRevLista.length>0?
+  const enRevHint=enRevLista.length>0?
     `<div class="fhint">⚠️ También hay ${enRevLista.length} en revisión (no aparecen aquí hasta confirmar estado)</div>`:'';
   const optsHtml=lista.map(f=>`<option value="${f.cod}" ${r.seg_cod===f.cod?'selected':''}>${f.nom}</option>`).join('');
   return `<div class="sw">
@@ -743,9 +743,14 @@ function segS0(){
       <select id="seg-ferr">
         <option value="">— Seleccionar ferretería —</option>
         ${optsHtml}
+        <option value="OTROS" ${r.seg_cod==='OTROS'?'selected':''}>🔸 Otros (no está en la lista)</option>
       </select>
-      <div class="fhint">${lista.length} ferreterías ${estadoSel}s en ${ciudadSel}</div>
+      <div class="fhint">${lista.length} ferreterías ${estLbl} en ${ciudadSel}</div>
       ${enRevHint}
+    </div>
+    <div class="f" id="seg-otros-wrap" style="display:${r.seg_cod==='OTROS'?'block':'none'}">
+      <label>Nombre de la ferretería</label>
+      <input id="seg-otros-nombre" value="${r.seg_otros_nombre||''}" placeholder="Nombre o referencia del local">
     </div>
   </div>
   <div class="card">
@@ -869,7 +874,7 @@ function segS1Inactiva(r){
 function segS2(){
   const r=segRec;
   const ferr=TODAS_FERRETERIAS.find(f=>f.cod===r.seg_cod);
-  const nomFerr=ferr?ferr.nom:r.seg_cod||'—';
+  const nomFerr=r.seg_cod==='OTROS'?(r.seg_otros_nombre||'(otros)'):(ferr?ferr.nom:r.seg_cod||'—');
   const ciudadFerr=ferr?ferr.ciudad:'—';
   const isActiva=r.seg_estado==='activa';
   const isReact=!isActiva&&r.reactivado===true;
@@ -923,11 +928,19 @@ function setSegEstado(est){
 function saveSeg0partial(){
   const sel=document.getElementById('seg-ferr');
   if(sel) segRec.seg_cod=sel.value;
+  const otrosInp=document.getElementById('seg-otros-nombre');
+  if(otrosInp) segRec.seg_otros_nombre=otrosInp.value;
 }
 function saveSeg0(){
   const sel=document.getElementById('seg-ferr');
   if(!sel||!sel.value){alert('Selecciona una ferretería.');return false;}
   segRec.seg_cod=sel.value;
+  if(sel.value==='OTROS'){
+    const otrosInp=document.getElementById('seg-otros-nombre');
+    const nombre=otrosInp?otrosInp.value.trim():'';
+    if(!nombre){alert('Escribe el nombre de la ferretería.');return false;}
+    segRec.seg_otros_nombre=nombre;
+  }
   // Asegurar ciudad asignada desde sesión
   if(!segRec.seg_ciudad) segRec.seg_ciudad=sesion.provincia==='La Libertad'?'Trujillo':'Lima';
   return true;
@@ -976,7 +989,12 @@ function renderPhSeg(){
 }
 function delPhSeg(i){segPhotos.local.splice(i,1);renderPhSeg();}
 function afterSeg(){
-  if(segStep===0){renderPhSeg();}
+  if(segStep===0){
+    renderPhSeg();
+    document.getElementById('seg-ferr')?.addEventListener('change',function(){
+      document.getElementById('seg-otros-wrap').style.display=this.value==='OTROS'?'block':'none';
+    });
+  }
 }
 function selObjInact(idx){
   const o=OBJ_INACTIVAS[idx];
@@ -1035,8 +1053,12 @@ function finalizeSegVisit(){
   segRec.provincia=sesion.provincia;
   segRec.promotor=sesion.promotor;
   // Resolve ferretería name for Sheets
-  const _ferrSeg=TODAS_FERRETERIAS.find(f=>f.cod===segRec.seg_cod);
-  if(_ferrSeg) segRec.seg_nombre=_ferrSeg.nom;
+  if(segRec.seg_cod==='OTROS'){
+    segRec.seg_nombre=segRec.seg_otros_nombre||'(otros - sin nombre)';
+  } else {
+    const _ferrSeg=TODAS_FERRETERIAS.find(f=>f.cod===segRec.seg_cod);
+    if(_ferrSeg) segRec.seg_nombre=_ferrSeg.nom;
+  }
   const v={...segRec};
   visits.push(v);
   postToSheets(v);
@@ -1068,12 +1090,6 @@ const OBJECIONES=[
   {txt:'¿Qué ganan?',resp:'Ayudarlos a vender más fierro para que repongan más fierro Siderperu.'},
   {txt:'¿Solo se vende fierro?',resp:'No. Se vende todo el portafolio de casco gris: fierro, cemento, ladrillo, agregados, alambre y clavo.'}
 ];
-const CHECKLIST=[
-  {q:'¿Maneja fierro BC y cemento de forma habitual?',consejo:'Confirma que los veas físicamente en el local. Si no están a la vista, pregunta dónde los almacenan y verifica antes de marcar Sí.'},
-  {q:'¿Cuenta con stock propio de materiales en su local o almacén?',consejo:'Un local solo con mostrador y catálogo no cuenta. Asegúrate de que haya mercadería real disponible para despachar antes de marcar Sí.'},
-  {q:'¿Cuenta con vehículo propio para despacho?',consejo:'Pregunta si es propio o contratado. Solo cuenta si la placa es de la ferretería o del dueño. Fletes de terceros no son confiables para nuestros tiempos.'},
-  {q:'¿Quien maneja el WhatsApp puede tomar decisiones sobre precios?',consejo:'Evalúa esto según la conversación. Si quien responde el WhatsApp consulta al dueño para cada precio, el envío diario no será confiable. Debe poder confirmar precios en el momento.'}
-];
 const PROG=[20,40,60,80,100];
 const SNMS=['Observable','Folleto','Conversación y checklist','Registro','Resultado'];
 const ELBL={'sin-contacto':'👁️ Sin contacto','visitada':'💬 Visitada','prospecto-no-apto':'⏳ Prospecto no apto','registrada':'✅ Registrada'};
@@ -1086,7 +1102,6 @@ function confirmBack(){if(step===0||confirm('¿Salir? Los datos no se guardarán
 function startForm(){
   rec={vhs:{},contactos:[{nombre:'',cargo:'Dueño',tel:'',enc:true}]};
   photos={local:[],vehiculo:[]};
-  chkA={0:null,1:null,2:null,3:null};
   customObjs=[];customVhs=[];sigOK=false;interesVal=null;step=0;
   render();show('scr-form');
 }
@@ -1094,7 +1109,7 @@ function setStep(n){step=n;render();}
 function render(){
   document.getElementById('tb-step').textContent='Paso '+(step+1)+' — '+SNMS[step];
   document.getElementById('prog').style.width=PROG[step]+'%';
-  const fns=[s0,s1,s2,s3,s4];
+  const fns=[s0,s1,s2,,s4];
   document.getElementById('fc').innerHTML=(fns[step]||s0)();
   after();window.scrollTo(0,0);
 }
@@ -1208,19 +1223,10 @@ function s1(){
 </div>`;
 }
 
-// ══ STEP 2: CONVERSACIÓN + CHECKLIST ══
+// ══ STEP 2: CONVERSACIÓN ══
 function s2(){
   const r=rec;
   const allObjs=[...OBJECIONES,...customObjs.map(t=>({txt:t,resp:''}))];
-  const chkHtml=CHECKLIST.map((c,i)=>`
-    <div class="chk-item" id="chki-${i}">
-      <div class="chk-item-q">${i+1}. ${c.q}</div>
-      <div class="chk-consejo"><strong>💡 Consejo para la promotora</strong>${c.consejo}</div>
-      <div class="chk-ans">
-        <button class="chk-btn yes ${chkA[i]===true?'sel':''}" onclick="setChk(${i},true)">✓ Sí</button>
-        <button class="chk-btn no ${chkA[i]===false?'sel':''}" onclick="setChk(${i},false)">✗ No</button>
-      </div>
-    </div>`).join('');
   return `<div class="sw">
   <div class="card">
     <div class="card-hdr">🎯 ¿Mostró interés en registrarse?</div>
@@ -1243,21 +1249,19 @@ function s2(){
       <button class="btn-p" style="margin-top:.75rem" onclick="saveConv();finalizeVisited()">✅ Guardar visita</button>
     </div>
     <div class="interes-expand ${interesVal===true?'on':''}" id="expand-si">
-      <div style="margin-top:.875rem" class="ai">Verifica los criterios mínimos. Haz las preguntas directamente al ferretero.</div>
-      ${chkHtml}
-      <div id="chk-result"></div>
+      <div style="margin-top:.875rem" class="as">✅ Completa los datos de afiliación.</div>
+      ${interesVal===true?s3Body():''}
     </div>
   </div>
   <div class="btnrow"><button class="btn-s" onclick="setStep(1)">← Volver</button></div>
 </div>`;
 }
 
-// ══ STEP 3: REGISTRO ══
-function s3(){
+// ══ STEP 3: REGISTRO (BODY) ══
+function s3Body(){
   const r=rec;
   const cobDisplay=r.distrito&&VECINOS[r.distrito]?VECINOS[r.distrito].join(', '):'Se calculará según el distrito del local';
-  return `<div class="sw">
-  <div class="as">✅ Cumple los criterios. Completa los datos de afiliación.</div>
+  return `
   <div class="card">
     <div class="card-hdr">👥 Personas de contacto</div>
     <div style="font-size:12px;color:var(--g600);margin-bottom:.75rem;font-style:italic">Agrega todas las personas relevantes. Marca quién responderá el WhatsApp de SX.</div>
@@ -1338,10 +1342,9 @@ function s3(){
     </div>
   </div>
   <div class="btnrow">
-    <button class="btn-s" onclick="setStep(2)">← Volver</button>
-    <button class="btn-p" onclick="saveRegData();finalizarReg()">🎉 Completar registro</button>
+    <button class="btn-p" onclick="saveRegData();finalizarReg()" style="width:100%">🎉 Completar registro</button>
   </div>
-</div>`;
+`;
 }
 
 // ══ STEP 4: RESULTADO ══
@@ -1369,7 +1372,20 @@ function s4(){
   const encTel=(encargado.tel||'').replace(/\D/g,'');
   const waLink=encTel?`https://wa.me/51${encTel}`:'';
 
-  const waMsg1=`¡Hola ${nombre}! 👋 Soy ${sesion.promotor||'[promotor]'} de SIDEREXPRESS (canal digital de Siderperu).\nRecibimos pedidos por WhatsApp y te asignamos la venta para que cobres y despaches. Atendemos jefes de hogar, maestros de obra y empresas.`;
+  // ── Flete por caso ──
+  const fleteTxt=r.flete_tipo==='incluido'?'Incluido en precios':
+    r.flete_tipo==='siempre'?'Siempre se cobra':
+    (r.minflete&&r.flete?`Gratis desde S/${r.minflete}, S/${r.flete} si es menor`:'—');
+
+  // ── Categorías y vehículos ──
+  const catsTxt=(r.cats&&r.cats.length)?r.cats.join(', '):'—';
+  const vehTxt=Object.values(r.vhs||{}).filter(v=>v.on).map(v=>`${v.ico}${v.name}×${v.qty}`).join(', ')||'—';
+
+  // ── Link de ubicación (Google Maps) ──
+  const mapsLink=r.lat&&r.lon?`https://maps.google.com/?q=${r.lat},${r.lon}`:'';
+  const ubicTxt=mapsLink?`\n📍 Ubicación: ${mapsLink}`:'';
+
+  const waMsg1=`¡Hola ${nombre}! 👋 Soy ${sesion.promotor||'[promotor]'} de SIDEREXPRESS (canal digital de Siderperu).\nRecibimos pedidos por WhatsApp y te asignamos la venta para que cobres y despaches. Atendemos jefes de hogar, maestros de obra y empresas.\n\n📋 *Registramos hoy:*\n🔖 Código: ${r.codigo||'—'}\n📍 Distrito: ${r.distrito||'—'}${ubicTxt}\n🏷️ Categorías: ${catsTxt}\n🚛 Vehículos: ${vehTxt}\n🕐 Horario: ${r.horario||'—'}\n🚚 Flete: ${fleteTxt}\n⏱️ Entrega: ${r.tent||'—'}\n👤 Contacto: ${encargado.nombre||'—'}\n\nCualquier corrección, dinos aquí mismo.`;
 
   const waMsg2=`¿Qué ganas con la red? 💪\n✅ Publicidad y captación de clientes sin costo para ti\n✅ Equipo comercial que gestiona y cierra las ventas\n✅ Bonos y promociones para incentivar al cliente\n✅ Afiliación gratuita`;
 
@@ -1456,7 +1472,7 @@ function s4(){
     </div>
   </div>`:''}
   <div class="btnrow" style="margin-top:.875rem">
-    <button class="btn-s" onclick="setStep(3)">← Volver</button>
+    <button class="btn-s" onclick="setStep(2)">← Volver</button>
     <button class="btn-p btn-blue" onclick="${r.estado==='registrada'?'finalizarConGrupo()':'goHome()'}">
       ${r.estado==='registrada'?'➕ Nueva visita':'➕ Nueva visita'}
     </button>
@@ -1473,8 +1489,7 @@ function after(){
       document.getElementById('nc-otra-wrap').style.display=this.value==='otra'?'block':'none';
     });
   }
-  if(step===2&&interesVal===true) evalChk();
-  if(step===3){
+  if(step===3||(step===2&&interesVal===true)){
     // Sync photo grids from step 0
     const gs3l=document.getElementById('pgrid-local-s3');if(gs3l)gs3l.innerHTML=photos.local.map((p,i)=>`<div class="pthumb"><img src="${p}"><button class="pdel" onclick="delPh('local',${i})">×</button></div>`).join('');
     const gs3v=document.getElementById('pgrid-vehiculo-s3');if(gs3v)gs3v.innerHTML=photos.vehiculo.map((p,i)=>`<div class="pthumb"><img src="${p}"><button class="pdel" onclick="delPh('vehiculo',${i})">×</button></div>`).join('');
@@ -1548,9 +1563,7 @@ function finalizeNC(){
 // ── INTERES ──
 function setInteres(val){
   interesVal=val;
-  document.getElementById('expand-no').classList.toggle('on',val===false);
-  document.getElementById('expand-si').classList.toggle('on',val===true);
-  if(val===true) evalChk();
+  render();
 }
 
 // ── OBJECIONES ──
@@ -1566,34 +1579,6 @@ function selObj(i){
 function addObj(){const inp=document.getElementById('obj-new');if(!inp||!inp.value.trim())return;customObjs.push(inp.value.trim());saveConv();render();setTimeout(()=>setInteres(false),10);}
 
 // ── CHECKLIST ──
-function setChk(i,val){
-  chkA[i]=val;
-  const item=document.getElementById('chki-'+i);
-  item.querySelectorAll('.chk-btn').forEach(b=>b.classList.remove('sel'));
-  item.querySelector('.chk-btn.'+(val?'yes':'no')).classList.add('sel');
-  evalChk();
-}
-function evalChk(){
-  const answers=Object.values(chkA);
-  const answered=answers.filter(a=>a!==null).length;
-  const el=document.getElementById('chk-result');if(!el)return;
-  if(answered<4){el.innerHTML='';return;}
-  const passed=answers.filter(a=>a===true).length;
-  if(passed===4){
-    el.innerHTML=`<div class="as">✅ Cumple todos los criterios. Puede proceder al registro.</div>
-    <div class="btnrow"><button class="btn-g" onclick="setStep(3)">Proceder al registro →</button></div>`;
-  } else {
-    el.innerHTML=`<div class="ar">⚠️ No cumple ${4-passed} criterio(s) mínimo(s). Se guardará como prospecto para seguimiento.</div>
-    <div class="f" style="margin-top:.75rem"><label style="font-size:11px;font-weight:700;color:var(--g600);text-transform:uppercase;letter-spacing:.4px;display:block;margin-bottom:3px">Nombre del contacto</label>
-      <input id="noApto-nombre" value="${rec.nc_obs||''}" placeholder="Nombre o referencia del local" style="width:100%;padding:9px 11px;border:1.5px solid var(--g200);border-radius:var(--rs);font-size:14px;background:var(--g50)">
-    </div>
-    <div class="f" style="margin-top:.5rem"><label style="font-size:11px;font-weight:700;color:var(--g600);text-transform:uppercase;letter-spacing:.4px;display:block;margin-bottom:3px">Teléfono / WhatsApp</label>
-      <input type="tel" id="noApto-tel" value="${rec.noApto_tel||''}" placeholder="9XXXXXXXX" style="width:100%;padding:9px 11px;border:1.5px solid var(--g200);border-radius:var(--rs);font-size:14px;background:var(--g50)">
-      <div style="font-size:11px;color:var(--g600);margin-top:3px">Solo nombre y teléfono — para seguimiento futuro.</div>
-    </div>
-    <div class="btnrow"><button class="btn-p" onclick="saveNoAptName();finalizeNotApt()">Guardar como prospecto →</button></div>`;
-  }
-}
 
 // ── CONTACTS ──
 function renderCont(c,i){return `<div class="cont-item" id="ci-${i}">
@@ -1618,19 +1603,6 @@ function clrSig(){const c=document.getElementById('sigc');sigCtx.clearRect(0,0,c
 function stamp(){const n=new Date();return{fecha:p2(n.getDate())+'/'+p2(n.getMonth()+1)+'/'+n.getFullYear(),hora:p2(n.getHours())+':'+p2(n.getMinutes())};}
 function finalizeVisited(){
   rec.estado='visitada';const{fecha,hora}=stamp();rec.fecha=fecha;rec.hora=hora;
-  rec.provincia=sesion.provincia;rec.promotor=sesion.promotor;
-  const v={...rec,photos:{local:[...photos.local],vehiculo:[...photos.vehiculo]}};
-  visits.push(v);postToSheets(v);
-  updCount();setStep(4);
-}
-function saveNoAptName(){
-  const inp=document.getElementById('noApto-nombre');
-  if(inp&&inp.value.trim()) rec.nc_obs=inp.value.trim();
-  const tel=document.getElementById('noApto-tel');
-  if(tel&&tel.value.trim()) rec.noApto_tel=tel.value.trim();
-}
-function finalizeNotApt(){
-  rec.estado='prospecto-no-apto';const{fecha,hora}=stamp();rec.fecha=fecha;rec.hora=hora;
   rec.provincia=sesion.provincia;rec.promotor=sesion.promotor;
   const v={...rec,photos:{local:[...photos.local],vehiculo:[...photos.vehiculo]}};
   visits.push(v);postToSheets(v);
@@ -1679,7 +1651,7 @@ function buildRes(){
   document.getElementById('rlista').innerHTML=visits.length?visits.map((v,i)=>{
     if(v.tipo_visita==='seguimiento'){
       const ferr=TODAS_FERRETERIAS.find(f=>f.cod===v.seg_cod);
-      const nom=ferr?ferr.nom:v.seg_cod||'—';
+      const nom=v.seg_cod==='OTROS'?(v.seg_otros_nombre||'(otros)'):(ferr?ferr.nom:v.seg_cod||'—');
       const isAct=v.seg_estado==='activa';
       const isReact=!isAct&&v.reactivado===true;
       const lbl=isReact?'🔄 Reactivada':isAct?'✅ Seguimiento activa':'⏸ Seguimiento inactiva';
@@ -1887,7 +1859,7 @@ async function genReporteDocx(){
         ...visits.map((v,i)=>{
           const isSeg=v.tipo_visita==='seguimiento';
           const ferr=isSeg?TODAS_FERRETERIAS.find(f=>f.cod===v.seg_cod):null;
-          const nom=isSeg?(ferr?ferr.nom:v.seg_cod):v.nc_obs||'—';
+          const nom=isSeg?(v.seg_cod==='OTROS'?(v.seg_otros_nombre||'(otros)'):(ferr?ferr.nom:v.seg_cod)):v.nc_obs||'—';
           const lugar=isSeg?(ferr?ferr.ciudad:'—'):v.distrito||'—';
           const tipo=isSeg?'Seguimiento':'Prospección';
           const res=isSeg?(v.reactivado?'Reactivada':v.seg_estado==='activa'?'Activa visitada':'Inactiva visitada'):(ELBL[v.estado]||v.estado||'—');
@@ -1911,7 +1883,7 @@ async function genReporteDocx(){
       const v=visits[i];
       const isSeg=v.tipo_visita==='seguimiento';
       const ferr=isSeg?TODAS_FERRETERIAS.find(f=>f.cod===v.seg_cod):null;
-      const nom=isSeg?(ferr?ferr.nom:v.seg_cod):v.nc_obs||'—';
+      const nom=isSeg?(v.seg_cod==='OTROS'?(v.seg_otros_nombre||'(otros)'):(ferr?ferr.nom:v.seg_cod)):v.nc_obs||'—';
       const clr=isSeg?(v.reactivado?GREEN:v.seg_estado==='activa'?GREEN:AMBER):
         v.estado==='registrada'?GREEN:v.estado==='visitada'?AMBER:
         v.estado==='prospecto-no-apto'?RED:'888888';
@@ -2005,7 +1977,7 @@ async function genReporteDocx(){
       const ferr=TODAS_FERRETERIAS.find(f=>f.cod===v.seg_cod);
       planRows.push(new TableRow({children:[
         cell([par([txt('Reactivación',{bold:true,size:18,color:BLUE})])],2000,GRAY),
-        cell([par([txt(ferr?ferr.nom:v.seg_cod||'—',{size:18})])],3000,'FFFFFF'),
+        cell([par([txt(v.seg_cod==='OTROS'?(v.seg_otros_nombre||'(otros)'):(ferr?ferr.nom:v.seg_cod||'—'),{size:18})])],3000,'FFFFFF'),
         cell([par([txt('Confirmar envío de precios: '+(v.fecha_react||'—'),{size:18})])],4360,'FFFFFF'),
       ]}));
     });
