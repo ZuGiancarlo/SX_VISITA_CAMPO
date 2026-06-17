@@ -1385,13 +1385,15 @@ function s4(){
   const mapsLink=r.lat&&r.lon?`https://maps.google.com/?q=${r.lat},${r.lon}`:'';
   const ubicTxt=mapsLink?`\n📍 Ubicación: ${mapsLink}`:'';
 
-  const waMsg1=`¡Hola ${nombre}! 👋 Soy ${sesion.promotor||'[promotor]'} de SIDEREXPRESS (canal digital de Siderperu).\nRecibimos pedidos por WhatsApp y te asignamos la venta para que cobres y despaches. Atendemos jefes de hogar, maestros de obra y empresas.\n\n📋 *Registramos hoy:*\n🔖 Código: ${r.codigo||'—'}\n📍 Distrito: ${r.distrito||'—'}${ubicTxt}\n🏷️ Categorías: ${catsTxt}\n🚛 Vehículos: ${vehTxt}\n🕐 Horario: ${r.horario||'—'}\n🚚 Flete: ${fleteTxt}\n⏱️ Entrega: ${r.tent||'—'}\n👤 Contacto: ${encargado.nombre||'—'}\n\nCualquier corrección, dinos aquí mismo.`;
+  // ── Cobertura (distritos) ──
+  const cobTxt=r.cobertura||'—';
 
-  const waMsg2=`¿Qué ganas con la red? 💪\n✅ Publicidad y captación de clientes sin costo para ti\n✅ Equipo comercial que gestiona y cierra las ventas\n✅ Bonos y promociones para incentivar al cliente\n✅ Afiliación gratuita`;
+  const waMsg1=`¡Hola ${nombre}! 👋 Soy ${sesion.promotor||'[promotor]'} de SIDEREXPRESS (canal digital de Siderperu).\nRecibimos pedidos por WhatsApp y te asignamos la venta para que cobres y despaches.\nAtendemos jefes de hogar, maestros de obra y empresas.\n\n¿Qué ganas con la red? 💪\n✅ Publicidad y captación de clientes sin costo para ti\n✅ Equipo comercial que gestiona y cierra las ventas\n✅ Bonos y promociones para incentivar al cliente\n✅ Afiliación gratuita`;
 
-  const waMsg3=`Para activarte necesitamos 4 cosas 📋\n1️⃣ *Ficha RUC* — PDF de SUNAT\n2️⃣ *Lista de precios* — en cualquier formato, incluyendo categoría, marca y precio por producto\n3️⃣ *Cuentas bancarias* — número de cuenta + CCI\n4️⃣ *Acuerdo de Nivel de Servicio* — te lo enviamos aquí para que lo aceptes por chat; luego coordinamos las firmas físicas`;
+  const waMsg2=`Para activarte necesitamos 4 cosas 📋\n1️⃣ *Ficha RUC* — PDF de SUNAT\n2️⃣ *Lista de precios* — en cualquier formato, incluyendo categoría, marca y precio por producto\n3️⃣ *Cuentas bancarias* — número de cuenta + CCI\n4️⃣ *Acuerdo de Nivel de Servicio* — te lo enviamos aquí para que lo aceptes por chat; luego coordinamos las firmas físicas\n\nConócenos 👇\n📸 Instagram: https://www.instagram.com/siderexpress.oficial/\n📘 Facebook: https://www.facebook.com/siderexpress.oficial/\n🎵 TikTok: https://www.tiktok.com/@siderexpress.oficial\n🌐 Web: https://siderexpress.pe`;
 
-  const waMsg4=`Conócenos 👇\n📸 Instagram: https://instagram.com/siderexpress\n📘 Facebook: https://facebook.com/siderexpress\n🌐 Web: https://siderexpress.pe`;
+  // Mensaje 3: resumen para pegar en la DESCRIPCIÓN del grupo de WhatsApp (formato neutro, sin saludo)
+  const waMsg3=`Ferretería: ${nombre}\nCódigo: ${r.codigo||'—'}\nDistrito: ${r.distrito||'—'}${ubicTxt}\nCobertura: ${cobTxt}\nCategorías: ${catsTxt}\nVehículos: ${vehTxt}\nHorario: ${r.horario||'—'}\nFlete: ${fleteTxt}\nEntrega: ${r.tent||'—'}\nContacto: ${encargado.nombre||'—'}`;
 
   const waMensaje=waMsg1;
 
@@ -1431,31 +1433,27 @@ function s4(){
       <div class="wa-paso-txt" style="font-weight:700;margin-bottom:.75rem"><span class="wa-paso-num">3</span>Envía estos mensajes uno por uno:</div>
 
       <div style="margin-bottom:.75rem">
-        <div style="font-size:10px;font-weight:700;color:var(--g600);text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px">Mensaje 1 — Bienvenida</div>
+        <div style="font-size:10px;font-weight:700;color:var(--g600);text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px">Mensaje 1 — Bienvenida + beneficios</div>
         <div class="wa-msg-pre" id="wa-msg1">${waMsg1}</div>
         <button class="btn-copy-sm" onclick="cpTxt('wa-msg1',this,'✅ Copiado')">📋 Copiar</button>
       </div>
 
       <div style="margin-bottom:.75rem">
-        <div style="font-size:10px;font-weight:700;color:var(--g600);text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px">Mensaje 2 — Beneficios</div>
+        <div style="font-size:10px;font-weight:700;color:var(--g600);text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px">Mensaje 2 — Documentos + redes</div>
         <div class="wa-msg-pre" id="wa-msg2">${waMsg2}</div>
         <button class="btn-copy-sm" onclick="cpTxt('wa-msg2',this,'✅ Copiado')">📋 Copiar</button>
       </div>
-
-      <div style="margin-bottom:.75rem">
-        <div style="font-size:10px;font-weight:700;color:var(--g600);text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px">Mensaje 3 — Documentos</div>
-        <div class="wa-msg-pre" id="wa-msg3">${waMsg3}</div>
-        <button class="btn-copy-sm" onclick="cpTxt('wa-msg3',this,'✅ Copiado')">📋 Copiar</button>
-      </div>
-
-      <div style="margin-bottom:.75rem">
-        <div style="font-size:10px;font-weight:700;color:var(--g600);text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px">Mensaje 4 — Redes sociales</div>
-        <div class="wa-msg-pre" id="wa-msg4">${waMsg4}</div>
-        <button class="btn-copy-sm" onclick="cpTxt('wa-msg4',this,'✅ Copiado')">📋 Copiar</button>
-      </div>
     </div>
 
-    <!-- ¿Se creó el grupo? -->
+    <!-- Descripción del grupo -->
+    <div class="wa-paso">
+      <div class="wa-paso-txt"><span class="wa-paso-num">4</span>Pega esto en la <strong>descripción del grupo</strong> de WhatsApp:</div>
+      <div class="wa-msg-pre" id="wa-msg3">${waMsg3}</div>
+      <button class="btn-copy-sm" onclick="cpTxt('wa-msg3',this,'✅ Copiado')">📋 Copiar</button>
+    </div>
+
+    <!-- ¿Se creó el grupo?-->
+
     <div class="wa-paso" style="border-top:2px solid #25D366;padding-top:1rem">
       <div class="wa-paso-txt" style="font-weight:700;margin-bottom:.75rem">¿Se creó el grupo?</div>
       <div style="display:flex;gap:10px">
